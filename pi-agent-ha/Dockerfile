@@ -69,21 +69,17 @@ RUN ADDON_ARCH="${BUILD_ARCH}"; \
     echo "Resolved add-on architecture: ${ADDON_ARCH} (BUILD_ARCH='${BUILD_ARCH}' TARGETARCH='${TARGETARCH}/${TARGETVARIANT}' uname='$(uname -m)')"
 
 # Install the Home Assistant CLI (ha command) so pi can manage HA directly.
-# 64-bit targets track latest; 4.46.0 is the last release that still ships the
-# ha_armv7 / ha_armhf / ha_i386 assets (latest dropped them and would 404).
+# Version is pinned (bump manually when upgrading) instead of fetched from
+# the GitHub API at build time — unauthenticated api.github.com calls are
+# rate-limited (403) on shared CI runners. 5.4.0 ships ha_amd64/ha_aarch64,
+# matching the base image's architecture support.
 RUN ADDON_ARCH=$(cat /etc/addon-arch); \
     case "${ADDON_ARCH}" in \
-        amd64)   HA_ARCH="amd64";   HA_VERSION="latest" ;; \
-        aarch64) HA_ARCH="aarch64"; HA_VERSION="latest" ;; \
-        armv7)   HA_ARCH="armv7";   HA_VERSION="4.46.0" ;; \
-        armhf)   HA_ARCH="armhf";   HA_VERSION="4.46.0" ;; \
-        i386)    HA_ARCH="i386";    HA_VERSION="4.46.0" ;; \
+        amd64)   HA_ARCH="amd64" ;; \
+        aarch64) HA_ARCH="aarch64" ;; \
         *)       echo "Unsupported architecture: ${ADDON_ARCH}" && exit 1 ;; \
     esac && \
-    if [ "${HA_VERSION}" = "latest" ]; then \
-        echo "Fetching latest Home Assistant CLI version..."; \
-        HA_VERSION=$(curl -fsSL https://api.github.com/repos/home-assistant/cli/releases/latest | jq -r '.tag_name'); \
-    fi && \
+    HA_VERSION="5.4.0" && \
     echo "Installing Home Assistant CLI ${HA_VERSION} for ${HA_ARCH}..." && \
     curl -fsSL -o /usr/bin/ha \
         "https://github.com/home-assistant/cli/releases/download/${HA_VERSION}/ha_${HA_ARCH}" && \

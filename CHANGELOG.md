@@ -9,6 +9,8 @@ All notable changes to the **Pi Agent Terminal** add-on. Newest first.
   **pull** the image instead of building it locally on the Home Assistant box.
 - Dropped `armv7` support — the current `ghcr.io/home-assistant/base` image only
   publishes `amd64`/`arm64`, so `armv7` installs were already impossible.
+- Pinned the bundled `ha` CLI to 5.4.0 — the previous build-time "fetch latest"
+  call hit GitHub's API, which is rate-limited (403) on shared CI runners.
 
 ## 1.1.1 — 2026-09-02
 
