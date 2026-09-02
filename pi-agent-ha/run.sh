@@ -175,6 +175,7 @@ set -g mouse ${tmux_mouse}
 
 # pi requires extended-keys (tmux 3.2+) for modified Enter (multi-line input)
 set -g extended-keys on
+set -g extended-keys-format csi-u
 
 # Large scrollback buffer
 set -g history-limit 50000
