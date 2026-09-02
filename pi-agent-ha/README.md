@@ -31,6 +31,8 @@ The container image is pre-built for each supported architecture and hosted on G
 | `local_reasoning` | `true` | Set `false` if the model is not a reasoning model. |
 | `local_context_window` | `240000` | Context window of the local model, in tokens. |
 | `local_max_tokens` | `8192` | Max output tokens of the local model. |
+| `ha_mcp_url` | *(empty)* | MCP server URL pi connects to for Home Assistant control. Set it to the [ha-mcp app's](https://github.com/homeassistant-ai/ha-mcp) MCP URL (from its Logs tab) to enable; empty = no HA tools. |
+| `ha_mcp_token` | *(empty)* | Optional Bearer token, only if the MCP endpoint requires one (e.g. HA's built-in `/api/mcp`). The ha-mcp app's secret-URL endpoint does not. |
 
 ## Authentication
 
@@ -84,6 +86,35 @@ Then set the add-on option `provider` to the provider key (e.g. `ollama`) and/or
 
 - `apiKey` may be a dummy value for keyless servers (Ollama ignores it) — pi requires *some* value before the model appears in `/model`.
 - Some OpenAI-compatible servers need `"compat": { "supportsDeveloperRole": false, "supportsReasoningEffort": false }` at the provider level.
+
+## Home Assistant control (ha-mcp)
+
+pi can read and control Home Assistant through a **Model Context Protocol (MCP)
+server**, exposed to the agent as two tools:
+
+- `ha_tools` — list the available MCP tools, each with a description and input schema.
+- `ha_call` — call one of those tools by name with JSON arguments.
+
+**Intended backend: the [homeassistant-ai ha-mcp server](https://github.com/homeassistant-ai/ha-mcp).**
+It is a full-featured HA server — beyond controlling exposed entities it can build and edit
+automations, dashboards, and scripts; debug automations from traces; read history and logs;
+and manage helpers, areas, zones, labels, HACS, backups, and the device/entity registry.
+
+### Connect pi to the ha-mcp app
+
+1. **Add the repo** (once): Settings → Apps → ⋮ → Repositories → add
+   `https://github.com/homeassistant-ai/ha-mcp`.
+2. **Install** the **Home Assistant MCP Server** app and start it.
+3. Open its **Logs** tab and copy the **MCP URL** it prints.
+4. Paste that URL into this add-on's `ha_mcp_url` option and restart pi-agent-ha.
+
+pi then lists the ha-mcp tools via `ha_tools` and drives Home Assistant via `ha_call`.
+Leave `ha_mcp_url` empty to disable HA control — the extension is a graceful no-op, so
+pi still runs normally.
+
+> The built-in HA MCP server also works: point `ha_mcp_url` at
+> `http://homeassistant:8123/api/mcp` and set `ha_mcp_token` to an HA long-lived
+> access token. The ha-mcp app is the more capable, recommended backend.
 
 ## Architecture support
 

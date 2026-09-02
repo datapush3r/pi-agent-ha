@@ -1,24 +1,31 @@
 /**
- * ha-mcp.ts — bridge pi to Home Assistant's built-in MCP server.
+ * ha-mcp.ts — bridge pi to a Home Assistant MCP server (Streamable HTTP).
  *
- * Exposes Home Assistant to the pi agent as two tools:
- *   - ha_tools : list the HA MCP tools available to this add-on (+ input schemas)
- *   - ha_call  : call a specific HA tool by name with JSON arguments
+ * Intended backend: the homeassistant-ai "Home Assistant MCP Server" app
+ * (https://github.com/homeassistant-ai/ha-mcp) — full control, build (automations,
+ * dashboards, scripts), and debug of Home Assistant. Also works with HA's built-in
+ * MCP server if you set ha_mcp_url to http://homeassistant:8123/api/mcp and
+ * ha_mcp_token to an HA long-lived access token.
  *
- * Transport: MCP "Streamable HTTP" — POST JSON-RPC to HA's /api/mcp.
- * Auth: Bearer HA_MCP_TOKEN (a Home Assistant long-lived access token).
+ * Exposes the server to the pi agent as two tools:
+ *   - ha_tools : list the MCP tools available (+ input schemas)
+ *   - ha_call  : call a specific tool by name with JSON arguments
  *
- * Gated on HA_MCP_TOKEN: when it is unset, this extension is a no-op and pi
- * runs with no HA tools (graceful). Set the add-on's ha_mcp_token option to
- * an HA long-lived access token to enable.
+ * Transport: MCP "Streamable HTTP" — POST JSON-RPC to HA_MCP_URL.
+ * Auth: optional Bearer HA_MCP_TOKEN (only if the endpoint requires it; the
+ *       ha-mcp app's secret-URL endpoint does not).
+ *
+ * Gated on HA_MCP_URL: when it is unset, this extension is a no-op and pi runs
+ * with no HA tools (graceful). Set the add-on's ha_mcp_url option to the MCP
+ * server URL (from the ha-mcp app's Logs tab) to enable.
  *
  * Env:
- *   HA_MCP_URL    default http://homeassistant:8123/api/mcp
- *   HA_MCP_TOKEN  required to activate (HA long-lived access token)
+ *   HA_MCP_URL    the MCP server URL (required to activate)
+ *   HA_MCP_TOKEN  optional Bearer token (only for token-gated endpoints)
  */
 import { Type } from "typebox";
 
-const MCP_URL = process.env.HA_MCP_URL || "http://homeassistant:8123/api/mcp";
+const MCP_URL = process.env.HA_MCP_URL || "";
 const MCP_TOKEN = process.env.HA_MCP_TOKEN || "";
 const PROTOCOL_VERSION = "2025-06-18";
 const TIMEOUT_MS = 15000;
@@ -79,7 +86,9 @@ async function rpc(method: string, params: any, notify = false): Promise<any> {
 			signal: ctrl.signal,
 		});
 	} catch (e: any) {
-		throw new Error(`MCP ${method}: ${e && e.name === "AbortError" ? "timed out" : e?.message || e}`);
+		throw new Error(
+			`MCP ${method}: ${e && e.name === "AbortError" ? "timed out" : e?.message || e}`,
+		);
 	} finally {
 		clearTimeout(timer);
 	}
@@ -93,9 +102,11 @@ async function rpc(method: string, params: any, notify = false): Promise<any> {
 	}
 	const ct = res.headers.get("content-type") || "";
 	const text = await res.text();
-	if (!res.ok) throw new Error(`MCP ${method}: HTTP ${res.status} ${text.slice(0, 200)}`);
+	if (!res.ok)
+		throw new Error(`MCP ${method}: HTTP ${res.status} ${text.slice(0, 200)}`);
 	const msg = parseBody(ct, text);
-	if (msg && msg.error) throw new Error(`MCP ${method}: ${JSON.stringify(msg.error).slice(0, 200)}`);
+	if (msg && msg.error)
+		throw new Error(`MCP ${method}: ${JSON.stringify(msg.error).slice(0, 200)}`);
 	return msg ? msg.result : undefined;
 }
 
@@ -120,7 +131,12 @@ function contentToText(content: any): string {
 	if (Array.isArray(content)) {
 		return content
 			.map((c: any) =>
-				c && typeof c === "object" && c.type === "text" && typeof c.text === "string" ? c.text : JSON.stringify(c),
+				c &&
+				typeof c === "object" &&
+				c.type === "text" &&
+				typeof c.text === "string"
+					? c.text
+					: JSON.stringify(c),
 			)
 			.join("\n");
 	}
@@ -128,16 +144,23 @@ function contentToText(content: any): string {
 }
 
 export default async function haMcpExtension(pi: any) {
-	// Graceful no-op when disabled: no token => no HA tools, pi runs normally.
-	if (!MCP_TOKEN) return;
+	// Graceful no-op when disabled: no MCP URL => no HA tools, pi runs normally.
+	// Set the add-on's ha_mcp_url option to the MCP server URL to enable.
+	if (!MCP_URL) return;
 
 	const listSchema = Type.Object({
 		filter: Type.Optional(
-			Type.String({ description: "Optional substring to narrow the list to tools whose name/description match" }),
+			Type.String({
+				description:
+					"Optional substring to narrow the list to tools whose name/description match",
+			}),
 		),
 	});
 	const callSchema = Type.Object({
-		tool: Type.String({ description: "The Home Assistant MCP tool name to call (see ha_tools output)" }),
+		tool: Type.String({
+			description:
+				"The Home Assistant MCP tool name to call (see ha_tools output)",
+		}),
 		args: Type.Optional(Type.Object({}, { additionalProperties: true }) as any),
 	});
 
@@ -146,25 +169,39 @@ export default async function haMcpExtension(pi: any) {
 		label: "HA tools",
 		description:
 			"List the Home Assistant MCP tools available to this add-on, with a description and input schema for each.",
-		promptSnippet: "List available Home Assistant tools (then use ha_call to invoke one).",
-		promptGuidelines: ["Use ha_tools to discover the Home Assistant tools before calling ha_call."],
+		promptSnippet:
+			"List available Home Assistant tools (then use ha_call to invoke one).",
+		promptGuidelines: [
+			"Use ha_tools to discover the Home Assistant tools before calling ha_call.",
+		],
 		parameters: listSchema,
 		async execute(_toolCallId: string, params: any) {
 			try {
 				const tools = await listTools();
 				const f = String((params && params.filter) || "").toLowerCase();
 				const shown = f
-					? tools.filter((t) => `${t.name} ${t.description || ""}`.toLowerCase().includes(f))
+					? tools.filter((t) =>
+							`${t.name} ${t.description || ""}`.toLowerCase().includes(f),
+						)
 					: tools;
 				const body = shown
-					.map((t) => `### ${t.name}\n${t.description || ""}\ninput: ${JSON.stringify(t.inputSchema || {})}`)
+					.map(
+						(t) =>
+							`### ${t.name}\n${t.description || ""}\ninput: ${JSON.stringify(t.inputSchema || {})}`,
+					)
 					.join("\n\n");
 				return {
-					content: [{ type: "text", text: body || "(no Home Assistant tools exposed)" }],
+					content: [
+						{ type: "text", text: body || "(no Home Assistant tools exposed)" },
+					],
 					details: { count: shown.length },
 				};
 			} catch (e: any) {
-				return { content: [{ type: "text", text: `HA tools unavailable: ${e?.message || e}` }] };
+				return {
+					content: [
+						{ type: "text", text: `HA tools unavailable: ${e?.message || e}` },
+					],
+				};
 			}
 		},
 	});
@@ -182,18 +219,34 @@ export default async function haMcpExtension(pi: any) {
 		async execute(_toolCallId: string, params: any) {
 			const name = params && params.tool;
 			if (!name || typeof name !== "string") {
-				return { content: [{ type: "text", text: "ha_call needs a 'tool' name (see ha_tools)" }] };
+				return {
+					content: [
+						{ type: "text", text: "ha_call needs a 'tool' name (see ha_tools)" },
+					],
+				};
 			}
 			try {
-				const result = await rpc("tools/call", { name, arguments: (params && params.args) || {} });
+				const result = await rpc("tools/call", {
+					name,
+					arguments: (params && params.args) || {},
+				});
 				const isError = !!(result && result.isError);
-				const text = contentToText(result && result.content !== undefined ? result.content : result);
+				const text = contentToText(
+					result && result.content !== undefined ? result.content : result,
+				);
 				return {
-					content: [{ type: "text", text: text || (isError ? "tool returned no output" : "(no output)") }],
+					content: [
+						{
+							type: "text",
+							text: text || (isError ? "tool returned no output" : "(no output)"),
+						},
+					],
 					details: { tool: name, isError },
 				};
 			} catch (e: any) {
-				return { content: [{ type: "text", text: `HA call failed: ${e?.message || e}` }] };
+				return {
+					content: [{ type: "text", text: `HA call failed: ${e?.message || e}` }],
+				};
 			}
 		},
 	});
@@ -204,7 +257,9 @@ export default async function haMcpExtension(pi: any) {
 		.then((tools) => {
 			status = "ready";
 			toolCount = tools.length;
-			console.log(`[ha-mcp] ready: ${tools.length} Home Assistant tool(s) at ${MCP_URL}`);
+			console.log(
+				`[ha-mcp] ready: ${tools.length} Home Assistant tool(s) at ${MCP_URL}`,
+			);
 		})
 		.catch((e) => {
 			status = "error";
@@ -215,7 +270,8 @@ export default async function haMcpExtension(pi: any) {
 	pi.on("session_start", (_event: any, ctx: any) => {
 		const ui = ctx && ctx.ui;
 		if (!ui || typeof ui.notify !== "function") return;
-		if (status === "ready") ui.notify(`HA MCP ready: ${toolCount} tool(s) (${MCP_URL})`, "info");
+		if (status === "ready")
+			ui.notify(`HA MCP ready: ${toolCount} tool(s) (${MCP_URL})`, "info");
 		else if (status === "error") ui.notify(`HA MCP: ${errMsg}`, "error");
 		// status === "pending": still connecting; no notification.
 	});
