@@ -1,0 +1,59 @@
+---
+name: "Pi Agent Terminal"
+description: "Terminal interface for the pi coding agent (earendil-works/pi-coding-agent). Web terminal via ttyd embedded in the HA dashboard, persistent tmux session, and access to /config."
+version: "1.0.0"
+slug: "pi_agent_ha"
+init: false
+
+arch:
+  - aarch64
+  - amd64
+  - armv7
+
+url: "https://github.com/datapush3r/pi-agent-ha"
+
+# Web interface configuration (embedded in the HA sidebar via ingress)
+ingress: true
+ingress_port: 7680
+panel_icon: mdi:console
+panel_title: "Pi Agent Terminal"
+panel_admin: true
+
+# Single port: the ttyd web terminal (served through ingress)
+ports:
+  7680/tcp: 7680
+ports_description:
+  7680/tcp: "ttyd web terminal (embedded in web interface via ingress)"
+
+# Add-on configuration options
+options:
+  auto_launch_pi: true
+  tmux_mouse: false
+  provider: ""
+  model: ""
+  api_key: ""
+  api_key_env: "ANTHROPIC_API_KEY"
+
+schema:
+  auto_launch_pi: bool?
+  tmux_mouse: bool?
+  provider: str?
+  model: str?
+  api_key: password?
+  api_key_env: str?
+
+# Volume mappings for file access
+map:
+  - config:rw # pi opens in the HA config directory
+
+# API access for Home Assistant integration
+hassio_api: true
+hassio_role: manager
+homeassistant_api: true
+auth_api: true
+
+# Service startup configuration
+startup: services
+
+# Web UI access URL
+webui: http://[HOST]:[PORT:7680]/

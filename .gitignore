@@ -1,0 +1,10 @@
+# Allowlist: ignore everything, then re-include only what ships in the repo.
+# This intentionally excludes DESIGN.md (dev spec), .pi/ session state, and any
+# stray files.
+*
+
+!.gitignore
+!repository.yaml
+!README.md
+!pi-agent-ha/
+!pi-agent-ha/**
