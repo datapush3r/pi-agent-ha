@@ -130,4 +130,4 @@ pi still runs normally.
 
 ## License
 
-MIT
+AGPL-3.0 (GNU Affero General Public License v3.0). Copyright (C) 2026 datapush3r. See [LICENSE](LICENSE) for full terms.

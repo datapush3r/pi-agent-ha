@@ -8,7 +8,7 @@ LABEL \
     org.opencontainers.image.title="Home Assistant Add-on: Pi Agent Terminal" \
     org.opencontainers.image.description="Terminal interface for the pi coding agent (pi.dev)" \
     org.opencontainers.image.source="https://github.com/datapush3r/pi-agent-ha" \
-    org.opencontainers.image.licenses="MIT" \
+    org.opencontainers.image.licenses="AGPL-3.0" \
     org.opencontainers.image.version="1.0.0"
 
 # Core tooling in a single layer. nodejs/npm are required by pi (a Node CLI);

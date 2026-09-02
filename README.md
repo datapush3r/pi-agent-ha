@@ -31,4 +31,4 @@ and updating **pull** the image instead of building on your Home Assistant box.
 
 [Full documentation →](pi-agent-ha/README.md) · [Changelog →](pi-agent-ha/CHANGELOG.md)
 
-**License:** MIT
+**License:** [AGPL-3.0](LICENSE)
