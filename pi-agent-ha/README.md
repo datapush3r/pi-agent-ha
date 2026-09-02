@@ -8,6 +8,12 @@ Inspired by [esjavadex/claude-code-ha](https://github.com/esjavadex/claude-code-
 
 ## Install
 
+**From within Home Assistant**, use this button to open the add-repository screen with this repo pre-filled:
+
+[![My](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fdatapush3r%2Fpi-agent-ha)
+
+Or add it manually:
+
 1. **Settings → Add-ons → Add-on Store**
 2. Top-right menu (⋮) → **Repositories**
 3. Add `https://github.com/datapush3r/pi-agent-ha` and click **Add**
