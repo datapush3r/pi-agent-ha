@@ -6,6 +6,7 @@
 !.gitignore
 !repository.yaml
 !README.md
+!LICENSE
 !.github/
 !.github/**
 !pi-agent-ha/
