@@ -11,6 +11,8 @@ Inspired by [esjavadex/claude-code-ha](https://github.com/esjavadex/claude-code-
 3. Add `https://github.com/datapush3r/pi-agent-ha` and click **Add**
 4. Install **Pi Agent Terminal**, start it, and open the panel from the sidebar
 
+The container image is pre-built for each supported architecture and hosted on GitHub Container Registry — installing and updating pull the image instead of building it on your Home Assistant box.
+
 ## Options
 
 | Option | Default | Description |
@@ -85,7 +87,7 @@ Then set the add-on option `provider` to the provider key (e.g. `ollama`) and/or
 
 ## Architecture support
 
-`amd64`, `aarch64`, `armv7` (Alpine 3.21 base images).
+`amd64`, `aarch64` (pre-built images on GHCR, `ghcr.io/home-assistant/base` multi-arch base).
 
 ## License
 
