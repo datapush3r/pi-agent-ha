@@ -1,6 +1,6 @@
 # Pi Agent Terminal for Home Assistant
 
-A Home Assistant add-on that runs the [pi coding agent](https://github.com/earendil-works/pi-coding-agent) in a browser-based terminal, right inside your dashboard. It ships the `ha` CLI for managing Home Assistant, git, and ripgrep — keeps your session alive across restarts with tmux, and opens in your `/config` directory.
+A Home Assistant add-on that runs the [pi coding agent](https://pi.dev/) in a browser-based terminal, right inside your dashboard. It ships the `ha` CLI for managing Home Assistant, git, and ripgrep — keeps your session alive across restarts with tmux, and opens in your `/config` directory.
 
 Inspired by [esjavadex/claude-code-ha](https://github.com/esjavadex/claude-code-ha) (MIT).
 
