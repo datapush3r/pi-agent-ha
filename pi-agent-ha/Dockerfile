@@ -93,8 +93,7 @@ WORKDIR /config
 # Copy startup script and helper scripts
 COPY run.sh /run.sh
 COPY scripts/ /opt/scripts/
-RUN chmod +x /run.sh \
-    && chmod +x /opt/scripts/*.sh
+RUN chmod +x /run.sh /opt/scripts/*.sh
 
 # Use exec form for better signal handling
 CMD ["/run.sh"]
