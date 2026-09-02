@@ -4,6 +4,8 @@ A Home Assistant add-on that runs the [pi coding agent](https://pi.dev/) in a br
 
 Inspired by [esjavadex/claude-code-ha](https://github.com/esjavadex/claude-code-ha) (MIT).
 
+![Pi Agent Terminal running in the Home Assistant dashboard](screenshot.png)
+
 ## Install
 
 1. **Settings → Add-ons → Add-on Store**

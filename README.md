@@ -3,6 +3,8 @@
 A Home Assistant add-on that runs the [pi coding agent](https://pi.dev/) in a
 browser-based terminal, right inside your dashboard.
 
+![Pi Agent Terminal running in the Home Assistant dashboard](pi-agent-ha/screenshot.png)
+
 This repository is the **add-on source**. The full user documentation and
 changelog live in the add-on directory and render directly in the Home
 Assistant **Add-on Store**:
