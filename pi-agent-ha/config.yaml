@@ -1,7 +1,7 @@
 ---
 name: "Pi Agent Terminal"
 description: "Terminal interface for the pi coding agent (pi.dev). Web terminal via ttyd embedded in the HA dashboard, persistent tmux session, and access to /config."
-version: "1.1.0"
+version: "1.1.1"
 slug: "pi_agent_ha"
 init: false
 
