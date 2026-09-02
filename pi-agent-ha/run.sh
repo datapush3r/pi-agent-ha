@@ -106,6 +106,9 @@ setup_tmux() {
 # Mouse mode is disabled by default so ttyd/browser copy and paste keeps working.
 set -g mouse ${tmux_mouse}
 
+# pi requires extended-keys (tmux 3.2+) for modified Enter (multi-line input)
+set -g extended-keys on
+
 # Large scrollback buffer
 set -g history-limit 50000
 
@@ -159,11 +162,13 @@ get_pi_launch_command() {
     fi
 
     if [ "$auto_launch_pi" = "true" ]; then
-        # Auto-launch pi; when pi exits the user lands back in a shell
-        echo "clear && echo 'Welcome to Pi Agent Terminal!' && echo '' && echo 'Starting pi...' && sleep 1 && cd /config && pi ${pi_flags}"
+        # Auto-launch pi; when pi exits the pane drops to a shell instead of
+        # the session dying, so pi's error output stays visible on the panel.
+        echo "clear && echo 'Welcome to Pi Agent Terminal!' && echo '' && echo 'Starting pi...' && sleep 1 && cd /config && pi${pi_flags}; echo; echo 'pi exited - if unexpected, check the provider/model/api_key options; you can re-run pi here.'; exec bash"
     else
-        # Plain shell; user starts pi (or /login) manually
-        echo "clear && cd /config"
+        # Plain shell; user starts pi (or /login) manually. exec bash keeps the
+        # session alive (a bare command chain would exit and kill it).
+        echo "clear && cd /config && exec bash"
     fi
 }
 
