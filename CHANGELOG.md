@@ -2,6 +2,15 @@
 
 All notable changes to the **Pi Agent Terminal** add-on. Newest first.
 
+## 1.2.2 — 2026-09-02
+
+- **Fixed: the add-on did not appear in the Add-on Store.** The manifest's
+  `image` field carried a `:latest` tag, which the Supervisor rejects
+  ("Docker image must not contain a tag") — so the repo cloned fine but the
+  add-on was silently dropped from the store. Removed the tag; the Supervisor
+  appends the add-on version itself and pulls
+  `ghcr.io/datapush3r/pi-agent-ha:<version>`.
+
 ## 1.2.1 — 2026-09-02
 
 - Rebuilt the pre-built image on a current CI pipeline (migrated GitHub
