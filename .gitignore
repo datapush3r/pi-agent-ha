@@ -6,5 +6,6 @@
 !.gitignore
 !repository.yaml
 !README.md
+!CHANGELOG.md
 !pi-agent-ha/
 !pi-agent-ha/**
