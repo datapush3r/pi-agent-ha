@@ -210,6 +210,36 @@ WRAPPER_EOF
     bashio::log.info "tmux configured (${tmux_conf})"
 }
 
+# Install the HA MCP bridge extension into pi's global extensions dir and export
+# the env it reads. The extension is a graceful no-op unless ha_mcp_token is set
+# (an HA long-lived access token), so this is safe to always run.
+install_ha_mcp() {
+    local ext_src="/opt/extensions/ha-mcp.ts"
+    local ext_dst="${HOME}/.pi/agent/extensions/ha-mcp.ts"
+    local ha_mcp_url ha_mcp_token
+
+    ha_mcp_url=$(conf 'ha_mcp_url' 'http://homeassistant:8123/api/mcp')
+    ha_mcp_token=$(conf 'ha_mcp_token' '')
+
+    # Export for the pi process (flows: run.sh -> ttyd -> tmux-pi -> tmux session).
+    export HA_MCP_URL="$ha_mcp_url"
+    export HA_MCP_TOKEN="$ha_mcp_token"
+
+    if [ -f "$ext_src" ]; then
+        mkdir -p "$(dirname "$ext_dst")"
+        cp "$ext_src" "$ext_dst"
+        chmod 644 "$ext_dst"
+    else
+        bashio::log.warning "HA MCP extension not found at ${ext_src} (image may be stale)"
+    fi
+
+    if [ -n "$ha_mcp_token" ]; then
+        bashio::log.info "HA MCP: enabled (url=${ha_mcp_url})"
+    else
+        bashio::log.info "HA MCP: disabled (set ha_mcp_token to an HA long-lived access token to enable)"
+    fi
+}
+
 # Determine the pi launch command based on configuration
 get_pi_launch_command() {
     local auto_launch_pi
@@ -300,6 +330,7 @@ main() {
     init_environment
     sync_models_json
     setup_tmux
+    install_ha_mcp
     run_health_check
     start_web_terminal
 }

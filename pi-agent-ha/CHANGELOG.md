@@ -2,6 +2,22 @@
 
 All notable changes to the **Pi Agent Terminal** add-on. Newest first.
 
+## 1.3.0 — 2026-09-02
+
+- **Control Home Assistant from pi via the built-in MCP server.** A new pi
+  extension (`ha-mcp.ts`) connects pi to HA's MCP server (MCP *Streamable HTTP*
+  at `http://homeassistant:8123/api/mcp`) and exposes two tools:
+  - `ha_tools` — list the Home Assistant tools HA exposes, with each one's
+    description and input schema.
+  - `ha_call` — call one of those tools by name with JSON arguments.
+- New add-on options: `ha_mcp_url` (the MCP endpoint) and `ha_mcp_token` (an HA
+  **long-lived access token**, used as the Bearer credential). The bridge
+  activates whenever `ha_mcp_token` is set; leave it empty and the extension is
+  a graceful no-op, so a missing token never breaks pi startup.
+- pi ships no built-in MCP client, so this is delivered as a pi extension baked
+  into the image and copied into pi's global extensions dir at startup (stays
+  current across updates).
+
 ## 1.2.3 — 2026-09-02
 
 - **README and changelog now render in the Add-on Store.** Moved `README.md`

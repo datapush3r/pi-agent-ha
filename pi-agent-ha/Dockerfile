@@ -90,9 +90,12 @@ RUN ADDON_ARCH=$(cat /etc/addon-arch); \
 RUN mkdir -p /config
 WORKDIR /config
 
-# Copy startup script and helper scripts
+# Copy startup script, helper scripts, and the pi extension (HA MCP bridge).
+# The extension is baked into the image and copied into pi's extensions dir at
+# startup by run.sh so it stays current across updates (not on the /data volume).
 COPY run.sh /run.sh
 COPY scripts/ /opt/scripts/
+COPY extensions/ /opt/extensions/
 RUN chmod +x /run.sh /opt/scripts/*.sh
 
 # Use exec form for better signal handling

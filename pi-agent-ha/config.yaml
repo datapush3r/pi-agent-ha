@@ -1,7 +1,7 @@
 ---
 name: "Pi Agent Terminal"
-description: "Terminal interface for the pi coding agent (pi.dev). Web terminal via ttyd embedded in the HA dashboard, persistent tmux session, and access to /config."
-version: "1.2.3"
+description: "Terminal interface for the pi coding agent (pi.dev). Web terminal via ttyd embedded in the HA dashboard, persistent tmux session, access to /config, and optional Home Assistant control via the built-in MCP server."
+version: "1.3.0"
 slug: "pi_agent_ha"
 init: false
 
@@ -25,6 +25,11 @@ panel_admin: true
 # Add-on configuration options
 # Cloud: provider/model/api_key apply to built-in providers (Anthropic, OpenAI, ...)
 # Local: local_* generates models.json for OpenAI-compatible servers (Ollama, vLLM, ...)
+# HA MCP: ha_mcp_token enables control of Home Assistant via its built-in MCP server.
+#   Leave ha_mcp_token empty to disable. Set it to an HA long-lived access token
+#   (Settings > your user > Security > Long-lived access tokens) to expose HA tools
+#   (ha_tools / ha_call) to the pi agent. ha_mcp_url is the HA MCP endpoint
+#   (http://homeassistant:8123/api/mcp is correct inside HAOS).
 options:
   auto_launch_pi: true
   tmux_mouse: false
@@ -40,6 +45,8 @@ options:
   local_reasoning: true
   local_context_window: 240000
   local_max_tokens: 8192
+  ha_mcp_url: "http://homeassistant:8123/api/mcp"
+  ha_mcp_token: ""
 
 schema:
   auto_launch_pi: bool?
@@ -56,6 +63,8 @@ schema:
   local_reasoning: bool?
   local_context_window: int?
   local_max_tokens: int?
+  ha_mcp_url: str?
+  ha_mcp_token: password?
 
 # Volume mappings for file access
 map:
