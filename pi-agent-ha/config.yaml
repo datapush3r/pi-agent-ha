@@ -19,12 +19,6 @@ panel_icon: mdi:console
 panel_title: "Pi Agent Terminal"
 panel_admin: true
 
-# Single port: the ttyd web terminal (served through ingress)
-ports:
-  7680/tcp: 7680
-ports_description:
-  7680/tcp: "ttyd web terminal (embedded in web interface via ingress)"
-
 # Add-on configuration options
 options:
   auto_launch_pi: true
@@ -54,6 +48,3 @@ auth_api: true
 
 # Service startup configuration
 startup: services
-
-# Web UI access URL
-webui: http://[HOST]:[PORT:7680]/
