@@ -2,6 +2,15 @@
 
 All notable changes to the **Pi Agent Terminal** add-on. Newest first.
 
+## 1.2.1 — 2026-09-02
+
+- Rebuilt the pre-built image on a current CI pipeline (migrated GitHub
+  Actions to the Node 24 runtime ahead of the Node 20 runner retirement on
+  2026-09-23) and simplified the Dockerfile `chmod` step. **No change to
+  add-on behavior** — same image contents as 1.2.0.
+- Version bump so existing installs (still on 1.1.x) show a fresh update
+  target. The pre-built GHCR image is confirmed live for `amd64` + `arm64`.
+
 ## 1.2.0 — 2026-09-02
 
 - **Pre-built container images** hosted on GHCR (`ghcr.io/datapush3r/pi-agent-ha`),
