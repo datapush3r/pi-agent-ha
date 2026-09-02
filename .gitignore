@@ -7,5 +7,7 @@
 !repository.yaml
 !README.md
 !CHANGELOG.md
+!.github/
+!.github/**
 !pi-agent-ha/
 !pi-agent-ha/**
