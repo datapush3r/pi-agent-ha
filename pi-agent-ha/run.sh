@@ -4,6 +4,18 @@
 set -e
 set -o pipefail
 
+# Add-on option lookup. bashio v0.1.0 returns the literal string "null" for
+# option keys missing from the options payload instead of the requested
+# default, so normalize that case back to the default.
+conf() {
+    local value
+    value=$(bashio::config "$1" "$2")
+    if [ "$value" = "null" ]; then
+        value="$2"
+    fi
+    printf '%s' "$value"
+}
+
 # Initialize environment for the pi coding agent using /data (HA best practice:
 # /data is the guaranteed-writable persistent volume for add-on state).
 init_environment() {
@@ -33,8 +45,8 @@ init_environment() {
     # the named env var (default ANTHROPIC_API_KEY) and pi picks it up. When
     # empty, the user runs interactive /login inside the terminal instead.
     local api_key api_key_env
-    api_key=$(bashio::config 'api_key' '')
-    api_key_env=$(bashio::config 'api_key_env' 'ANTHROPIC_API_KEY')
+    api_key=$(conf 'api_key' '')
+    api_key_env=$(conf 'api_key_env' 'ANTHROPIC_API_KEY')
     # Guard: a bad/empty env name would make the export fail and (with set -e)
     # crash-loop the add-on. Fall back to the default if it's not a valid identifier.
     if ! [[ "$api_key_env" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
@@ -67,15 +79,70 @@ PROFILE_EOF
     bashio::log.info "  - Cache: $XDG_CACHE_HOME"
 }
 
-# Sync an optional custom models.json (local LLMs: Ollama, LM Studio, vLLM,
-# any OpenAI-compatible server) from the HA config dir into pi's state dir.
-# The /config copy is the source of truth; only overwrite the live file when
-# the source is newer (or the target is missing) so in-terminal edits survive
-# restarts. pi reloads models.json on every /model open, so no restart needed
-# after the file is in place.
+# Sync/generate pi's models.json (local LLMs: Ollama, LM Studio, vLLM, any
+# OpenAI-compatible server). Two sources — UI options win:
+#   1. local_base_url option set -> models.json is GENERATED from the local_*
+#      options (no file editing needed). Rewritten on every start.
+#   2. Otherwise /config/pi-agent-ha/models.json (user-managed file) is copied
+#      when newer (or the target is missing) so in-terminal edits survive
+#      restarts.
+# pi reloads models.json on every /model open, so no restart is needed once
+# the file is in place.
 sync_models_json() {
-    local models_src="/config/pi-agent-ha/models.json"
     local models_dst="${HOME}/.pi/agent/models.json"
+    local models_src="/config/pi-agent-ha/models.json"
+    local local_base_url local_provider_name local_model local_api local_api_key
+    local local_reasoning local_context_window local_max_tokens gen_model
+
+    local_base_url=$(conf 'local_base_url' '')
+
+    if [ -n "$local_base_url" ]; then
+        local_provider_name=$(conf 'local_provider_name' 'ninfer')
+        local_model=$(conf 'local_model' '')
+        local_api=$(conf 'local_api' 'openai-completions')
+        local_api_key=$(conf 'local_api_key' '')
+        local_reasoning=$(conf 'local_reasoning' 'true')
+        local_context_window=$(conf 'local_context_window' '240000')
+        local_max_tokens=$(conf 'local_max_tokens' '8192')
+        gen_model="${local_model:-$(conf 'model' '')}"
+
+        # Normalize to safe values rather than crash (set -e) on a bad option.
+        case "$local_reasoning" in true | false) ;; *) local_reasoning="false" ;; esac
+        case "$local_context_window" in '' | *[!0-9]*) local_context_window="240000" ;; esac
+        case "$local_max_tokens" in '' | *[!0-9]*) local_max_tokens="8192" ;; esac
+
+        if [ -z "$gen_model" ]; then
+            bashio::log.warning "local_base_url is set but no model id (local_model or model) — skipping models.json generation"
+            return 0
+        fi
+
+        jq -n \
+            --arg name "$local_provider_name" \
+            --arg baseUrl "$local_base_url" \
+            --arg api "$local_api" \
+            --arg apiKey "$local_api_key" \
+            --arg model "$gen_model" \
+            --argjson reasoning "$local_reasoning" \
+            --argjson contextWindow "$local_context_window" \
+            --argjson maxTokens "$local_max_tokens" \
+            '{
+                providers: {
+                    ($name): {
+                        baseUrl: $baseUrl,
+                        api: $api,
+                        apiKey: (if $apiKey == "" then "dummy" else $apiKey end),
+                        models: [{
+                            id: $model,
+                            reasoning: $reasoning,
+                            contextWindow: $contextWindow,
+                            maxTokens: $maxTokens
+                        }]
+                    }
+                }
+            }' >"$models_dst"
+        bashio::log.info "Generated models.json from local LLM options: provider '${local_provider_name}', model '${gen_model}' -> ${models_dst}"
+        return 0
+    fi
 
     if [ ! -f "$models_src" ]; then
         return 0
@@ -95,7 +162,7 @@ setup_tmux() {
     local tmux_mouse
     local tmux_wrapper="/usr/local/bin/tmux-pi"
 
-    tmux_mouse=$(bashio::config 'tmux_mouse' 'false')
+    tmux_mouse=$(conf 'tmux_mouse' 'false')
     case "${tmux_mouse:-false}" in
     true | on | yes | 1) tmux_mouse="on" ;;
     *) tmux_mouse="off" ;;
@@ -148,10 +215,21 @@ get_pi_launch_command() {
     local provider
     local model
     local pi_flags=""
+    local local_base_url
 
-    auto_launch_pi=$(bashio::config 'auto_launch_pi' 'true')
-    provider=$(bashio::config 'provider' '')
-    model=$(bashio::config 'model' '')
+    auto_launch_pi=$(conf 'auto_launch_pi' 'true')
+    provider=$(conf 'provider' '')
+    model=$(conf 'model' '')
+
+    # Local LLM fallback: when one is configured in the UI and no explicit
+    # launch provider/model was given, launch pi against the local LLM.
+    local_base_url=$(conf 'local_base_url' '')
+    if [ -n "$local_base_url" ] && [ -z "$provider" ]; then
+        provider=$(conf 'local_provider_name' 'ninfer')
+    fi
+    if [ -n "$local_base_url" ] && [ -z "$model" ]; then
+        model=$(conf 'local_model' '')
+    fi
 
     # Only add flags when the option is non-empty
     if [ -n "$provider" ]; then

@@ -21,6 +21,14 @@ Inspired by [esjavadex/claude-code-ha](https://github.com/esjavadex/claude-code-
 | `model` | *(empty)* | pi model pattern or ID passed as `--model`, e.g. `anthropic/claude-sonnet-4-5`. |
 | `api_key` | *(empty)* | Provider API key. When set, it is exported as the env var named by `api_key_env`. Leave empty to use interactive `/login` in the terminal. |
 | `api_key_env` | `ANTHROPIC_API_KEY` | Env var name used for `api_key` (e.g. `OPENAI_API_KEY` for OpenAI). |
+| `local_base_url` | *(empty)* | Base URL of a local OpenAI-compatible LLM server, e.g. `http://192.168.1.10:8080/v1`. When set, `models.json` is generated from the `local_*` options — no file editing needed. |
+| `local_model` | *(empty)* | Model id of the local LLM, e.g. `qwen3.8-27b`. Used as `--model` when `model` is empty. |
+| `local_provider_name` | `ninfer` | Provider key in the generated `models.json`. Used as `--provider` when `provider` is empty. |
+| `local_api` | `openai-completions` | API dialect of the server. |
+| `local_api_key` | *(empty)* | API key for the server; a dummy value is used when empty (keyless servers). |
+| `local_reasoning` | `true` | Set `false` if the model is not a reasoning model. |
+| `local_context_window` | `240000` | Context window of the local model, in tokens. |
+| `local_max_tokens` | `8192` | Max output tokens of the local model. |
 
 ## Authentication
 
@@ -36,9 +44,24 @@ Two ways, both work:
 
 ## Local LLMs (Ollama / LM Studio / vLLM / any OpenAI-compatible server)
 
-custom providers are defined in pi's `models.json`. Drop a file at **`/config/pi-agent-ha/models.json`** (editable in the HA file editor) and the add-on syncs it into pi's state dir on start. pi also reloads the file every time you open `/model`, so edits apply **without restarting** the add-on.
+**Easiest: the add-on options.** Set `local_base_url` and `local_model` — `models.json` is generated for you at startup, no file editing. Adjust `local_reasoning`, `local_context_window`, and `local_max_tokens` to match your model. When `local_base_url` is set, `provider`/`model` fall back to the local LLM (`local_provider_name`/`local_model`) automatically, so a local-only setup needs just those two fields. To launch a cloud model instead, set `provider`/`model` explicitly (or switch anytime with `/model` in the terminal).
 
-Example `/config/pi-agent-ha/models.json`:
+Example: local LLM at `192.168.1.10:8080`, model `qwen3.8-27b` (240k context, reasoning):
+
+| Option | Value |
+| --- | --- |
+| `local_base_url` | `http://192.168.1.10:8080/v1` |
+| `local_model` | `qwen3.8-27b` |
+
+Notes:
+
+- **Networking:** the add-on is a container, so `localhost`/`127.0.0.1` points at the add-on itself, not the HA host. Use your LLM server's LAN IP, or a Docker network alias if it runs in Docker on a shared network.
+- Reasoning/thinking models (ones returning a `reasoning_content` field) need `local_reasoning: true` so pi parses the thinking tokens instead of waiting for normal content.
+- The generated file is rewritten on every add-on start at `/data/home/.pi/agent/models.json` — edit the options, not the file.
+
+### Advanced: hand-written models.json
+
+Prefer full control (multiple models, `compat` flags, custom fields)? Drop a file at **`/config/pi-agent-ha/models.json`** (editable in the HA file editor) and leave `local_base_url` empty — the UI options take precedence when set. The add-on syncs the file into pi's state dir on start (only when it's newer), and pi reloads it every time you open `/model`, so edits apply **without restarting**.
 
 ```json
 {
@@ -57,13 +80,8 @@ Example `/config/pi-agent-ha/models.json`:
 
 Then set the add-on option `provider` to the provider key (e.g. `ollama`) and/or pick the model with `/model` in the terminal.
 
-Notes:
-
 - `apiKey` may be a dummy value for keyless servers (Ollama ignores it) — pi requires *some* value before the model appears in `/model`.
-- **Networking:** the add-on is a container, so `localhost`/`127.0.0.1` points at the add-on itself, not the HA host. Use your LLM server's LAN IP, or a Docker network alias if it runs in Docker on a shared network.
 - Some OpenAI-compatible servers need `"compat": { "supportsDeveloperRole": false, "supportsReasoningEffort": false }` at the provider level.
-- Reasoning/thinking models (ones returning a `reasoning_content` field) need `"reasoning": true` on the model entry so pi parses the thinking tokens instead of waiting for normal content.
-- The synced file lives at `/data/home/.pi/agent/models.json`; editing it there directly also works (a restart won't clobber it unless the `/config` copy is newer).
 
 ## Architecture support
 
