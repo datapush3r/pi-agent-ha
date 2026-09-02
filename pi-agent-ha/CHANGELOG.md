@@ -2,6 +2,16 @@
 
 All notable changes to the **Pi Agent Terminal** add-on. Newest first.
 
+## 1.2.3 — 2026-09-02
+
+- **README and changelog now render in the Add-on Store.** Moved `README.md`
+  and `CHANGELOG.md` into the add-on directory (`pi-agent-ha/`) so the
+  Supervisor serves them: the README is shown as the store's long description
+  and the changelog is available from the store's changelog view. The repo-root
+  `README.md` is now a short landing page pointing at the full docs.
+- Version bump (no image/behavior change — the docs come from the store, not
+  the container image).
+
 ## 1.2.2 — 2026-09-02
 
 - **Fixed: the add-on did not appear in the Add-on Store.** The manifest's
