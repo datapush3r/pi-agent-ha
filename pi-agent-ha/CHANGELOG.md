@@ -2,6 +2,15 @@
 
 All notable changes to the **Pi Agent Terminal** add-on. Newest first.
 
+## 1.8.0 — 2026-09-03
+
+- New **`pi_packages`** option: install extra pi packages (extensions, skills,
+  themes, prompt templates) at startup. Comma-separated specs —
+  `npm:@scope/pkg@1.2.0`, `git:github.com/user/repo@v1`, a plain URL, or a
+  local path — are handed to pi's own `pi install` and land in the user
+  settings on the persistent `/data` volume. Invalid specs are skipped with a
+  log warning and a failed install never blocks startup.
+
 ## 1.7.0 — 2026-09-03
 
 - **ha-mcp TUI: calls visible, output hidden — now configurable.**

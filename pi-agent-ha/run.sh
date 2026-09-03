@@ -242,6 +242,34 @@ install_ha_mcp() {
     fi
 }
 
+# Install user-specified pi packages (npm: / git: / URL / local-path specs)
+# via pi's own installer into the user settings on the persistent /data
+# volume. Non-fatal per package: an invalid spec is skipped with a warning
+# and a failed install never blocks startup. Specs are validated against a
+# strict charset and passed as one quoted arg (no eval) — and installing a
+# package means trusting its code (it runs with pi's privileges).
+install_pi_packages() {
+    local pi_packages spec
+    local specs
+
+    pi_packages=$(conf 'pi_packages' '')
+    [ -z "$pi_packages" ] && return 0
+
+    read -ra specs <<< "${pi_packages//,/ }"
+    for spec in "${specs[@]}"; do
+        [ -z "$spec" ] && continue
+        if [[ ! "$spec" =~ ^[A-Za-z0-9@:/._~+-]+$ ]]; then
+            bashio::log.warning "pi_packages: skipping invalid spec '${spec}'"
+            continue
+        fi
+        if pi install "$spec"; then
+            bashio::log.info "pi package installed: ${spec}"
+        else
+            bashio::log.warning "pi package failed to install: ${spec}"
+        fi
+    done
+}
+
 # Sync the homeassistant-ai agent skill (home-assistant-best-practices) into pi's
 # global skills dir. pi implements the Agent Skills standard (agentskills.io)
 # and discovers any directory containing SKILL.md, so the skill folder is
@@ -377,6 +405,7 @@ main() {
     sync_models_json
     setup_tmux
     install_ha_mcp
+    install_pi_packages
     sync_ha_skills
     run_health_check
     start_web_terminal

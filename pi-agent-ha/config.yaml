@@ -1,7 +1,7 @@
 ---
 name: "Pi Agent Terminal"
 description: "Terminal interface for the pi coding agent (pi.dev). Web terminal via ttyd embedded in the HA dashboard, persistent tmux session, access to /config, Home Assistant control via the ha-mcp MCP server, and the home-assistant-ai best-practices skill."
-version: "1.7.0"
+version: "1.8.0"
 slug: "pi_agent_ha"
 init: false
 
@@ -25,6 +25,8 @@ panel_admin: true
 # Add-on configuration options
 # Cloud: provider/model/api_key apply to built-in providers (Anthropic, OpenAI, ...)
 # Local: local_* generates models.json for OpenAI-compatible servers (Ollama, vLLM, ...)
+# Packages: pi_packages is a comma-separated list of pi package specs
+#   (npm: / git: / URL) installed at startup via pi's own installer.
 # HA control: ha_mcp_url points pi at a Home Assistant MCP server.
 #   Intended backend: the homeassistant-ai "Home Assistant MCP Server" app
 #   (https://github.com/homeassistant-ai/ha-mcp) — full control, build and debug.
@@ -50,6 +52,7 @@ options:
   ha_mcp_url: ""
   ha_mcp_token: ""
   hide_ha_output: true
+  pi_packages: ""
 
 schema:
   auto_launch_pi: bool?
@@ -69,6 +72,7 @@ schema:
   ha_mcp_url: str?
   ha_mcp_token: password?
   hide_ha_output: bool?
+  pi_packages: str?
 
 # Volume mappings for file access
 map:

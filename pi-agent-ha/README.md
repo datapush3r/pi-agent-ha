@@ -42,6 +42,7 @@ The container image is pre-built for each supported architecture and hosted on G
 | `ha_mcp_url` | *(empty)* | MCP server URL pi connects to for Home Assistant control. Set it to the [ha-mcp app's](https://github.com/homeassistant-ai/ha-mcp) MCP URL (from its Logs tab) to enable; empty = no HA tools. |
 | `ha_mcp_token` | *(empty)* | Optional Bearer token, only if the MCP endpoint requires one (e.g. HA's built-in `/api/mcp`). The ha-mcp app's secret-URL endpoint does not. |
 | `hide_ha_output` | `true` | Hide ha-mcp tool result bodies in the TUI (the call line stays visible). `false` = pi's default rendering with full output inline. |
+| `pi_packages` | *(empty)* | Comma-separated pi package specs (`npm:@scope/pkg@1.2.0`, `git:github.com/user/repo@v1`, a URL, or a local path) installed at startup via pi's own installer. |
 
 ## Authentication
 
@@ -176,6 +177,27 @@ version bump. A failed download (e.g. no internet at start) or an upstream
 repo layout change keeps the previously synced copy — the skill is only
 replaced after the new `SKILL.md` is verified — and pi runs normally
 either way. Check the add-on log for the `HA skill: synced …` line.
+
+## Adding pi packages (extensions, skills, themes) — optional
+
+pi can install **packages** — bundles of extensions, skills, themes, and
+prompt templates — from npm, git, or a URL. Set **`pi_packages`** to a
+comma-separated list of specs and they are installed at startup with pi's own
+installer:
+
+```yaml
+pi_packages: "npm:@foo/bar@1.2.0, git:github.com/user/repo@v1"
+```
+
+- Packages land in the user settings (`~/.pi/agent/settings.json`) on the
+  persistent `/data` volume; pi loads them on every start.
+- **Installing a package means trusting its code** — it runs with pi's
+  privileges, and its npm lifecycle runs during install. Only install
+  packages you'd run locally.
+- Invalid specs are skipped with a log warning; a failed install never
+  blocks startup (pi always starts).
+- Remove a package by dropping it from `pi_packages` and running
+  `pi remove <spec>` in the terminal (or edit the settings file directly).
 
 ## Architecture support
 
