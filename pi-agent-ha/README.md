@@ -1,6 +1,6 @@
 # Pi Agent Terminal for Home Assistant
 
-A Home Assistant add-on that runs the [pi coding agent](https://pi.dev/) in a browser-based terminal, right inside your dashboard. It ships the `ha` CLI for managing Home Assistant, git, and ripgrep — keeps your session alive across restarts with tmux, and opens in your `/config` directory.
+A Home Assistant add-on that runs the [pi coding agent](https://pi.dev/) in a browser-based terminal, right inside your dashboard. It ships the `ha` CLI for managing Home Assistant, git, and ripgrep — keeps your session alive across restarts with tmux, and opens in your `/config` directory. On every start it syncs the [home-assistant-best-practices agent skill](#home-assistant-best-practices-skill), and can optionally drive Home Assistant through an [MCP server](#home-assistant-control-ha-mcp--optional).
 
 Inspired by [esjavadex/claude-code-ha](https://github.com/esjavadex/claude-code-ha) (MIT).
 
@@ -95,44 +95,84 @@ Then set the add-on option `provider` to the provider key (e.g. `ollama`) and/or
 - `apiKey` may be a dummy value for keyless servers (Ollama ignores it) — pi requires *some* value before the model appears in `/model`.
 - Some OpenAI-compatible servers need `"compat": { "supportsDeveloperRole": false, "supportsReasoningEffort": false }` at the provider level.
 
-## Home Assistant control (ha-mcp)
+## Home Assistant control (ha-mcp) — optional
 
-pi can read and control Home Assistant through a **Model Context Protocol (MCP)
-server**, exposed to the agent as two tools:
+pi can read and control Home Assistant through a **Model Context Protocol
+(MCP) server**. Set `ha_mcp_url` to an MCP server URL and pi gets two tools:
 
-- `ha_tools` — list the available MCP tools, each with a description and input schema.
+- `ha_tools` — discover the tools the server exposes (with descriptions and input schemas).
 - `ha_call` — call one of those tools by name with JSON arguments.
 
-**Intended backend: the [homeassistant-ai ha-mcp server](https://github.com/homeassistant-ai/ha-mcp).**
-It is a full-featured HA server — beyond controlling exposed entities it can build and edit
-automations, dashboards, and scripts; debug automations from traces; read history and logs;
-and manage helpers, areas, zones, labels, HACS, backups, and the device/entity registry.
+Leave `ha_mcp_url` empty and the add-on runs exactly the same without HA
+control — the extension is a graceful no-op.
 
-### Connect pi to the ha-mcp app
+**Recommended backend: the
+[homeassistant-ai ha-mcp server app](https://github.com/homeassistant-ai/ha-mcp).**
+A full-featured HA MCP server — beyond controlling entities it can build and
+edit automations, dashboards, and scripts; debug automations from traces;
+read history and logs; and manage helpers, areas, zones, labels, HACS,
+backups, and the device/entity registry. Quickstart:
 
-1. **Add the repo** (once): Settings → Apps → ⋮ → Repositories → add
+1. **Add its repo** (once): Settings → Apps → ⋮ → *Repositories* → add
    `https://github.com/homeassistant-ai/ha-mcp`.
-2. **Install** the **Home Assistant MCP Server** app and start it.
-3. Open its **Logs** tab and copy the **MCP URL** it prints.
-4. Paste that URL into this add-on's `ha_mcp_url` option and restart pi-agent-ha.
+2. **Install and start** the **Home Assistant MCP Server** app, then copy its
+   **MCP URL** from the app's **Logs** tab.
+3. Paste the URL into this add-on's **`ha_mcp_url`** option and restart pi-agent-ha.
 
-pi then lists the ha-mcp tools via `ha_tools` and drives Home Assistant via `ha_call`.
-Leave `ha_mcp_url` empty to disable HA control — the extension is a graceful no-op, so
-pi still runs normally.
+pi then lists the server's tools via `ha_tools` and drives Home Assistant via
+`ha_call`. **Alternative backend:** HA's built-in MCP server — set
+`ha_mcp_url` to `http://homeassistant:8123/api/mcp` and `ha_mcp_token` to an
+HA long-lived access token (simpler, entity-control-focused tool set).
 
-**Tool output is hidden by default** so HA calls don't clutter the terminal. Press
-`ctrl+o` (pi's *expand tool output* keybinding) to show the full output of the tool
-calls. This is display-only — the model always receives the full result.
+**Tool output is hidden by default** so HA calls don't clutter the terminal.
+Press `ctrl+o` (pi's *expand tool output* keybinding) to show the full output
+of the tool calls. This is display-only — the model always receives the full
+result.
 
-> The built-in HA MCP server also works: point `ha_mcp_url` at
-> `http://homeassistant:8123/api/mcp` and set `ha_mcp_token` to an HA long-lived
-> access token. The ha-mcp app is the more capable, recommended backend.
+**[Full ha-mcp guide →](https://github.com/datapush3r/pi-agent-ha/blob/master/pi-agent-ha/HA-MCP.md)** —
+backends in detail, tool reference, behavior notes, options, and
+troubleshooting.
 
 ## Home Assistant best-practices skill
 
-The add-on syncs the [`home-assistant-best-practices`](https://github.com/homeassistant-ai/skills) agent skill from the [homeassistant-ai/skills](https://github.com/homeassistant-ai/skills) repo into pi's global skills directory at every start. pi implements the [Agent Skills standard](https://agentskills.io) natively — no setup, no options. The skill's short description is always in pi's context, and the full guidance (native triggers/conditions over Jinja templates, helper selection, automation modes, dashboards, safe refactoring) loads on demand whenever pi works on your automations, scripts, scenes, or dashboards.
+On every start the add-on syncs the
+[`home-assistant-best-practices`](https://github.com/homeassistant-ai/skills)
+agent skill from the [homeassistant-ai/skills](https://github.com/homeassistant-ai/skills)
+repo (MIT) into pi's global skills directory
+(`~/.pi/agent/skills/home-assistant-best-practices`). pi implements the
+[Agent Skills standard](https://agentskills.io) natively — no setup, no
+options.
 
-The skill is fetched from the upstream `main` branch on each start, so improvements flow without an image rebuild or version bump. If the download fails (e.g. no internet at start), the previously synced copy is kept and pi runs normally.
+**What it is.** A decision workflow and a critical anti-pattern table in
+`SKILL.md`, backed by 14 reference docs the agent loads on demand. Core
+principle: use native Home Assistant constructs wherever possible — templates
+bypass validation and fail silently at runtime. It covers:
+
+- **Authoring** — purpose-specific triggers/conditions over templates (the
+  post-2026.7 defaults), helper selection (`min_max`, `threshold`,
+  `derivative`, …) and Template Helpers over YAML, correct automation modes
+  (`restart` for motion lights, …), `entity_id` over `device_id`,
+  button/remote patterns, scenes, and blueprints.
+- **Dashboards** — Lovelace layout, views, cards, and card-type lookups.
+- **Operations** — safe refactoring (impact analysis before renames),
+  YAML-only integration management, and when a backup is actually required.
+- **AppDaemon** — when to use it over native HA, and how to structure apps.
+
+**How it works in pi.** Only the skill's short description is always in
+pi's context (progressive disclosure). When a task matches — creating or
+editing automations, scripts, scenes, dashboards, or blueprints; choosing
+helpers or templates; renaming entities; looking up card types or domain
+docs; writing AppDaemon apps; or deleting/restoring a backup or upgrading
+Core/OS — pi loads the full `SKILL.md` and follows it, pulling in the
+relevant reference docs as needed. You can also load it explicitly with
+`/skill:home-assistant-best-practices` in the terminal.
+
+**Updates.** The skill is fetched from the upstream `main` branch on each
+start, so fixes from upstream flow through without an image rebuild or
+version bump. A failed download (e.g. no internet at start) or an upstream
+repo layout change keeps the previously synced copy — the skill is only
+replaced after the new `SKILL.md` is verified — and pi runs normally
+either way. Check the add-on log for the `HA skill: synced …` line.
 
 ## Architecture support
 

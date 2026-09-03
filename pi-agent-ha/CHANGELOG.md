@@ -2,6 +2,17 @@
 
 All notable changes to the **Pi Agent Terminal** add-on. Newest first.
 
+## 1.5.1 — 2026-09-03
+
+- **Docs: expanded the skill and ha-mcp documentation.** New standalone guide
+  [`HA-MCP.md`](HA-MCP.md) for the optional Home Assistant control
+  integration — backends in detail (ha-mcp app and HA's built-in MCP server),
+  `ha_tools`/`ha_call` tool reference, behavior notes, options, and a
+  troubleshooting table. The README's *Home Assistant best-practices skill*
+  section now documents what the skill contains (decision workflow,
+  anti-pattern table, 14 reference docs), how pi loads it, and how to force
+  it with `/skill:home-assistant-best-practices`. No image or behavior change.
+
 ## 1.5.0 — 2026-09-03
 
 - **Home Assistant best-practices skill.** On every start the add-on syncs the [`home-assistant-best-practices`](https://github.com/homeassistant-ai/skills) agent skill from the [homeassistant-ai/skills](https://github.com/homeassistant-ai/skills) repo into pi's global skills dir (`/data/home/.pi/agent/skills/`). pi implements the [Agent Skills standard](https://agentskills.io) natively, so the skill works with no setup and no new options: its short description is always in pi's context, and the full guidance (native triggers/conditions over Jinja, helper selection, automation modes, dashboards, safe refactoring) loads on demand whenever pi touches your automations, scripts, scenes, or dashboards.

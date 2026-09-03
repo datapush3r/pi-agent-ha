@@ -5,11 +5,18 @@ browser-based terminal, right inside your dashboard.
 
 ![Pi Agent Terminal running in the Home Assistant dashboard](pi-agent-ha/screenshot.png)
 
+**What you get:**
+
+- A persistent pi terminal in the HA dashboard (tmux + ttyd) that opens in your `/config` directory, with the `ha` CLI, git, and ripgrep.
+- The [**home-assistant-best-practices** agent skill](pi-agent-ha/README.md#home-assistant-best-practices-skill), synced from [homeassistant-ai/skills](https://github.com/homeassistant-ai/skills) on every start — native HA constructs over templates, helper selection, safe refactoring, dashboards, and more.
+- **Optional** [**Home Assistant control via MCP**](pi-agent-ha/HA-MCP.md) — drive HA through the [ha-mcp server app](https://github.com/homeassistant-ai/ha-mcp) or HA's built-in MCP server.
+
 This repository is the **add-on source**. The full user documentation and
 changelog live in the add-on directory and render directly in the Home
 Assistant **Add-on Store**:
 
 - **Documentation** → [`pi-agent-ha/README.md`](pi-agent-ha/README.md)
+- **ha-mcp guide** → [`pi-agent-ha/HA-MCP.md`](pi-agent-ha/HA-MCP.md)
 - **Changelog** → [`pi-agent-ha/CHANGELOG.md`](pi-agent-ha/CHANGELOG.md)
 
 ## Add the add-on store
