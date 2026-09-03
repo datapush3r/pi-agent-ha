@@ -31,7 +31,9 @@ RUN node -e "const [a,b]=process.versions.node.split('.').map(Number); process.e
 
 # Install the pi coding agent CLI. pi is pure JS (no native build step), so
 # --ignore-scripts is safe and keeps the image lean (per pi's docs).
-RUN npm install -g --ignore-scripts @earendil-works/pi-coding-agent
+# Version is pinned (bump deliberately) instead of floating on `latest` —
+# reproducible builds, no surprise upstream releases.
+RUN npm install -g --ignore-scripts @earendil-works/pi-coding-agent@0.84.4
 
 # --- Architecture resolution (mirrors the reference add-on) ---
 # Home Assistant Supervisor always passes BUILD_ARCH (amd64|aarch64|armv7|...).
@@ -79,10 +81,16 @@ RUN ADDON_ARCH=$(cat /etc/addon-arch); \
         aarch64) HA_ARCH="aarch64" ;; \
         *)       echo "Unsupported architecture: ${ADDON_ARCH}" && exit 1 ;; \
     esac && \
+    case "${ADDON_ARCH}" in \
+        amd64)   HA_SHA256="30f3d287efbd37dd4de68800b4df78cc5adafde8a8d047def356d2826f59cb61" ;; \
+        aarch64) HA_SHA256="f75c99fdb665571f8792602193608cb07bf6bf4e7d0085aaeaa4b446e32b146f" ;; \
+        *)       echo "Unsupported architecture: ${ADDON_ARCH}" && exit 1 ;; \
+    esac && \
     HA_VERSION="5.4.0" && \
     echo "Installing Home Assistant CLI ${HA_VERSION} for ${HA_ARCH}..." && \
     curl -fsSL -o /usr/bin/ha \
         "https://github.com/home-assistant/cli/releases/download/${HA_VERSION}/ha_${HA_ARCH}" && \
+    echo "${HA_SHA256}  /usr/bin/ha" | sha256sum -c - && \
     chmod +x /usr/bin/ha && \
     echo "Home Assistant CLI ${HA_VERSION} installed successfully"
 

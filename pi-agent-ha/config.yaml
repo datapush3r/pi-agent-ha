@@ -1,7 +1,7 @@
 ---
 name: "Pi Agent Terminal"
 description: "Terminal interface for the pi coding agent (pi.dev). Web terminal via ttyd embedded in the HA dashboard, persistent tmux session, access to /config, Home Assistant control via the ha-mcp MCP server, and the home-assistant-ai best-practices skill."
-version: "1.5.1"
+version: "1.6.0"
 slug: "pi_agent_ha"
 init: false
 
@@ -72,11 +72,8 @@ schema:
 map:
   - config:rw # pi opens in the HA config directory
 
-# API access for Home Assistant integration
-hassio_api: true
-hassio_role: manager
-homeassistant_api: true
-auth_api: true
+# Volumes and startup. No Supervisor/HA/auth API access is declared
+# deliberately — nothing in the add-on calls those APIs (least privilege).
 
 # Service startup configuration
 startup: services

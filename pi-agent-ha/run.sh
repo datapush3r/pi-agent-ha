@@ -256,7 +256,7 @@ sync_ha_skills() {
     tmp=$(mktemp -d)
     if curl -fsSL "${skill_repo}/archive/refs/heads/main.tar.gz" -o "${tmp}/ha-skills.tar.gz" &&
         tar -xzf "${tmp}/ha-skills.tar.gz" -C "$tmp"; then
-        skill_src=$(find "$tmp" -type d -name "$skill_name" -print -quit 2>/dev/null || true)
+        skill_src=$(find "$tmp" -type d -path "*/skills/${skill_name}" -print -quit 2>/dev/null || true)
         if [ -n "$skill_src" ] && [ -f "${skill_src}/SKILL.md" ]; then
             rm -rf "$skill_dst"
             mkdir -p "$(dirname "$skill_dst")"
@@ -291,6 +291,19 @@ get_pi_launch_command() {
     fi
     if [ -n "$local_base_url" ] && [ -z "$model" ]; then
         model=$(conf 'local_model' '')
+    fi
+
+    # provider/model are embedded in an eval'd tmux launch command, so
+    # restrict them to a safe charset (pi provider/model ids; no shell/glob
+    # metacharacters) — a value that fails the check is dropped with a warning
+    # rather than evaluated.
+    if [ -n "$provider" ] && [[ ! "$provider" =~ ^[A-Za-z0-9._/:-]+$ ]]; then
+        bashio::log.warning "provider option contains unsafe characters — ignoring"
+        provider=""
+    fi
+    if [ -n "$model" ] && [[ ! "$model" =~ ^[A-Za-z0-9._/:-]+$ ]]; then
+        bashio::log.warning "model option contains unsafe characters — ignoring"
+        model=""
     fi
 
     # Only add flags when the option is non-empty

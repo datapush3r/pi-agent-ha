@@ -2,6 +2,24 @@
 
 All notable changes to the **Pi Agent Terminal** add-on. Newest first.
 
+## 1.6.0 — 2026-09-03
+
+- **Security hardening (from a security scan).**
+  - Dropped the unused `hassio_api` (manager role), `homeassistant_api`, and
+    `auth_api` manifest permissions — nothing in the add-on calls those APIs,
+    and the panel is already a root terminal, so least privilege wins.
+  - Pinned the pi CLI to `0.84.4` in the image (was floating on `latest`) —
+    reproducible builds, no surprise upstream releases. Bump deliberately when
+    upgrading pi.
+  - The `ha` CLI release download is now verified against a pinned SHA-256
+    (per-architecture) before installation.
+  - GitHub Actions workflow steps pinned to commit SHAs.
+  - `provider`/`model` options are validated against a safe character set
+    before being embedded in the launch command (they flow into an `eval`'d
+    tmux command); unsafe values are dropped with a log warning.
+  - The skill sync now anchors on the upstream `skills/` path, so a decoy
+    directory elsewhere in the skills repo cannot be picked up.
+
 ## 1.5.1 — 2026-09-03
 
 - **Docs: expanded the skill and ha-mcp documentation.** New standalone guide
