@@ -16,7 +16,11 @@
     const hex = c.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
     if (hex) {
       let h = hex[1];
-      if (h.length === 3) h = h.split("").map((x) => x + x).join("");
+      if (h.length === 3)
+        h = h
+          .split("")
+          .map((x) => x + x)
+          .join("");
       r = parseInt(h.slice(0, 2), 16);
       g = parseInt(h.slice(2, 4), 16);
       b = parseInt(h.slice(4, 6), 16);
@@ -59,7 +63,12 @@
     const t = window.term;
     if (t && t.options) {
       const th = t.options.theme || {};
-      t.options.theme = { ...th, background: c.bg, foreground: text, cursor: text };
+      t.options.theme = {
+        ...th,
+        background: c.bg,
+        foreground: text,
+        cursor: text,
+      };
       applied = seen;
     }
   };

@@ -421,11 +421,11 @@ start_web_terminal() {
     local theme_mode
     theme_mode=$(conf 'theme_mode' 'inherit')
     case "$theme_mode" in
-        inherit | pi) ;;
-        *)
-            bashio::log.warning "theme_mode '${theme_mode}' invalid — using 'inherit'"
-            theme_mode="inherit"
-            ;;
+    inherit | pi) ;;
+    *)
+        bashio::log.warning "theme_mode '${theme_mode}' invalid — using 'inherit'"
+        theme_mode="inherit"
+        ;;
     esac
 
     local ttyd_flags=(
