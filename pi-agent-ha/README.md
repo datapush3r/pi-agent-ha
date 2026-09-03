@@ -43,6 +43,7 @@ The container image is pre-built for each supported architecture and hosted on G
 | `ha_mcp_token` | *(empty)* | Optional Bearer token, only if the MCP endpoint requires one (e.g. HA's built-in `/api/mcp`). The ha-mcp app's secret-URL endpoint does not. |
 | `hide_ha_output` | `true` | Hide ha-mcp tool result bodies in the TUI (the call line stays visible). `false` = pi's default rendering with full output inline. |
 | `pi_packages` | *(empty)* | Comma-separated pi package specs (`npm:@scope/pkg@1.2.0`, `git:github.com/user/repo@v1`, a URL, or a local path) installed at startup via pi's own installer. |
+| `theme_mode` | `inherit` | Panel theming. `inherit` (default) syncs the terminal panel live to Home Assistant's theme (light/dark or a custom theme's colors); `pi` keeps pi's own default theme and colors (stock ttyd page). |
 
 ## Authentication
 

@@ -2,6 +2,22 @@
 
 All notable changes to the **Pi Agent Terminal** add-on. Newest first.
 
+## 1.9.0 — 2026-09-03
+
+- **New `theme_mode` option — the panel can follow Home Assistant's theme.**
+  - `inherit` (default): the terminal panel follows your HA theme — page and
+    terminal background/foreground sync to HA's current light/dark (or your
+    custom theme's colors) while the panel is open, live. pi's TUI follows
+    the terminal background (its `light/dark` theme setting, via the OSC 11
+    background query the bundled xterm answers) from when the pi session
+    starts.
+  - `pi`: stock ttyd page — pi's own default theme and colors (previous
+    behavior).
+  - Implemented by serving a vendored copy of ttyd's page with a small sync
+    script spliced in (`ttyd --index`); no new permissions and no network
+    calls — the colors are read from the HA page itself (same-origin
+    iframe). Opening the panel outside HA is a graceful no-op.
+
 ## 1.8.1 — 2026-09-03
 
 - **Fix: add-on failed to start after setting `pi_packages`.** The
