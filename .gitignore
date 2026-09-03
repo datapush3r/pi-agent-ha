@@ -10,5 +10,6 @@
 !.github/
 !.github/**
 !.trivyignore
+!.gitleaks.toml
 !pi-agent-ha/
 !pi-agent-ha/**
