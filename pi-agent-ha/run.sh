@@ -413,21 +413,6 @@ start_web_terminal() {
         bashio::log.info "Reusing existing tmux session 'pi'..."
     fi
 
-    # Panel theme: "inherit" (default) splices the HA-theme sync script into a
-    # copy of the vendored ttyd stock index and serves it via --index; "pi"
-    # keeps ttyd's stock page (pi's own default look). The vendored index is
-    # from ttyd 1.7.7 — re-vendor web/ttyd-index.html if the ttyd version
-    # changes (the splice requires it to still end with </body></html>).
-    local theme_mode
-    theme_mode=$(conf 'theme_mode' 'inherit')
-    case "$theme_mode" in
-    inherit | pi) ;;
-    *)
-        bashio::log.warning "theme_mode '${theme_mode}' invalid — using 'inherit'"
-        theme_mode="inherit"
-        ;;
-    esac
-
     local ttyd_flags=(
         --port "${port}"
         --interface 0.0.0.0
@@ -435,19 +420,6 @@ start_web_terminal() {
         --ping-interval 30
         --client-option reconnect=5
     )
-    if [ "$theme_mode" = "inherit" ]; then
-        local merged="/opt/web/index-inherit.html"
-        if [ -r /opt/web/ttyd-index.html ] && [ -r /opt/web/ha-theme-sync.js ] &&
-            [ "$(tail -c 14 /opt/web/ttyd-index.html)" = "</body></html>" ]; then
-            head -c -14 /opt/web/ttyd-index.html >"${merged}" &&
-                cat /opt/web/ha-theme-sync.js >>"${merged}" &&
-                printf '</body></html>' >>"${merged}" &&
-                ttyd_flags+=(--index "${merged}")
-        else
-            bashio::log.warning "vendored ttyd index missing or modified — serving stock page (theme_mode=pi behavior)"
-        fi
-    fi
-    bashio::log.info "Panel theme mode: ${theme_mode}"
 
     # ttyd attaches every browser connection to the persistent tmux session.
     # If pi is running and you close the browser tab, it keeps running.

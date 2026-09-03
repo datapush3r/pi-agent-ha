@@ -2,6 +2,16 @@
 
 All notable changes to the **Pi Agent Terminal** add-on. Newest first.
 
+## 1.9.1 — 2026-09-03
+
+- **Removed the `theme_mode` option (simplification).** The panel now always
+  uses ttyd's stock page with pi's own theme and colors — no Home Assistant
+  theme is read or injected, so pi UI/styling packages render exactly as
+  designed. The `inherit`/`pi` split was dropped: in practice both modes
+  looked nearly identical (stock ttyd is already dark), while the injected
+  HA colors could clobber pi's own styling. If an HA-themed panel is wanted
+  later, that's a deliberate feature again — not a default.
+
 ## 1.9.0 — 2026-09-03
 
 - **New `theme_mode` option — the panel can follow Home Assistant's theme.**

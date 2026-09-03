@@ -104,10 +104,6 @@ WORKDIR /config
 COPY run.sh /run.sh
 COPY scripts/ /opt/scripts/
 COPY extensions/ /opt/extensions/
-# Vendored ttyd 1.7.7 stock page + HA-theme sync script (theme_mode=inherit).
-# run.sh splices the script into a copy of the page and passes it to ttyd via
-# --index; theme_mode=pi serves ttyd's own built-in page instead.
-COPY web/ /opt/web/
 RUN chmod +x /run.sh /opt/scripts/*.sh
 
 # Use exec form for better signal handling
