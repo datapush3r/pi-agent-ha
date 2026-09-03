@@ -259,11 +259,14 @@ install_pi_packages() {
     pi_packages=$(conf 'pi_packages' '')
 
     if [ -f "$state" ]; then
-        read -ra previous < "$state"
+        # mapfile (not read): a bare read crashes under set -e on the empty
+        # state file (option once empty) and only captured the first line of
+        # a multi-package state anyway.
+        mapfile -t previous <"$state"
     fi
 
     if [ -n "$pi_packages" ]; then
-        read -ra specs <<< "${pi_packages//,/ }"
+        read -ra specs <<<"${pi_packages//,/ }"
         for spec in "${specs[@]}"; do
             [ -z "$spec" ] && continue
             if [[ ! "$spec" =~ ^[A-Za-z0-9@:/._~+-]+$ ]]; then
@@ -298,9 +301,9 @@ install_pi_packages() {
     done
 
     if [ "${#valid[@]}" -gt 0 ]; then
-        printf '%s\n' "${valid[@]}" > "$state"
+        printf '%s\n' "${valid[@]}" >"$state"
     else
-        : > "$state"
+        : >"$state"
     fi
 }
 

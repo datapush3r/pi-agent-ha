@@ -1,7 +1,7 @@
 ---
 name: "Pi Agent Terminal"
 description: "Terminal interface for the pi coding agent (pi.dev). Web terminal via ttyd embedded in the HA dashboard, persistent tmux session, access to /config, Home Assistant control via the ha-mcp MCP server, and the home-assistant-ai best-practices skill."
-version: "1.8.0"
+version: "1.8.1"
 slug: "pi_agent_ha"
 init: false
 

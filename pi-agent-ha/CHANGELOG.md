@@ -2,6 +2,16 @@
 
 All notable changes to the **Pi Agent Terminal** add-on. Newest first.
 
+## 1.8.1 — 2026-09-03
+
+- **Fix: add-on failed to start after setting `pi_packages`.** The
+  package-state read crashed the startup script when the state file was
+  empty (created on the first start with an empty option) — `pi_packages`
+  was unusable the moment it became non-empty. Also fixed a latent
+  multi-package bug: only the first installed spec was tracked for
+  unlist-removal. (State is now read with `mapfile`, which handles empty
+  files and full multi-line state.)
+
 ## 1.8.0 — 2026-09-03
 
 - New **`pi_packages`** option: install extra pi packages (extensions, skills,
