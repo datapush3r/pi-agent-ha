@@ -21,14 +21,13 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          fetch-depth: 1
+          # Full history (repo is tiny) so gitleaks can scan every commit.
+          fetch-depth: 0
 
       - name: Secret scan (gitleaks, full history)
         uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          fetch-depth: 0
 
       - name: Read add-on version
         id: version
@@ -68,7 +67,7 @@ jobs:
       - name: Trivy image scan (critical + fixed only)
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
-          image-name: ghcr.io/datapush3r/pi-agent-ha:${{ needs.build.outputs.version }}
+          image-ref: ghcr.io/datapush3r/pi-agent-ha:${{ needs.build.outputs.version }}
           format: table
           exit-code: "1"
           severity: CRITICAL
