@@ -421,23 +421,6 @@ start_web_terminal() {
         --client-option reconnect=5
     )
 
-    # Panel colors: the vendored page is the stock ttyd 1.7.7 page with the
-    # page-level xterm theme object stripped from the options bundle and the
-    # page frame set to #000. With no theme in the options, xterm.js applies
-    # its own built-in defaults (white on black, its own 16-color palette) -
-    # so every color shown is either sent by the app stream (bash/pi) or is
-    # an xterm.js built-in; the page contributes none. No HA theme is read;
-    # no option. Re-vendor web/ttyd-index.html (re-apply both patches) if the
-    # ttyd version changes.
-    local panel_index="/opt/web/ttyd-index.html"
-    if [ -r "${panel_index}" ] && ! grep -q '#2b2b2b' "${panel_index}" &&
-        grep -q 'html,body,#terminal-container{background:#000}' "${panel_index}"; then
-        ttyd_flags+=(--index "${panel_index}")
-        bashio::log.info "Panel page: stock ttyd page with xterm.js built-in colors"
-    else
-        bashio::log.warning "vendored panel page missing or modified - serving ttyd built-in page"
-    fi
-
     # ttyd attaches every browser connection to the persistent tmux session.
     # If pi is running and you close the browser tab, it keeps running.
     # Reopening the tab re-attaches to the same session.

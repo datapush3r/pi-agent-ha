@@ -2,6 +2,16 @@
 
 All notable changes to the **Pi Agent Terminal** add-on. Newest first.
 
+## 1.9.4 — 2026-09-03
+
+- **Back to the stock ttyd page — simplest option, matches the ecosystem.**
+  The official `Terminal & SSH` add-on and `hassio-addons/app-ssh` both serve
+  ttyd's stock page with no customization, so this add-on does the same:
+  the vendored page and the `--index` plumbing from 1.9.2/1.9.3 are removed
+  (no vendored asset, no page patch, no startup guard). The panel shows the
+  stock page's colors — same as every other HA terminal panel — and pi,
+  tmux, and bash still render exactly the colors they send.
+
 ## 1.9.3 — 2026-09-03
 
 - **Panel colors: fully delegated to xterm.js.** After checking the

@@ -104,8 +104,6 @@ WORKDIR /config
 COPY run.sh /run.sh
 COPY scripts/ /opt/scripts/
 COPY extensions/ /opt/extensions/
-# Vendored, color-neutralized stock ttyd page (served via --index; see run.sh).
-COPY web/ /opt/web/
 RUN chmod +x /run.sh /opt/scripts/*.sh
 
 # Use exec form for better signal handling
