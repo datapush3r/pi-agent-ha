@@ -2,6 +2,13 @@
 
 All notable changes to the **Pi Agent Terminal** add-on. Newest first.
 
+## 1.9.5 — 2026-09-03
+
+- **`ha_skills` option (default `true`)** — the home-assistant-best-practices
+  skill sync at startup is now skippable: set `ha_skills: false` to stop
+  downloading it on every start. Behavior is unchanged at the default; a
+  synced copy stays in place while disabled.
+
 ## 1.9.4 — 2026-09-03
 
 - **Back to the stock ttyd page — simplest option, matches the ecosystem.**

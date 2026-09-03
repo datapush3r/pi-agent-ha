@@ -445,7 +445,9 @@ main() {
     setup_tmux
     install_ha_mcp
     install_pi_packages
-    sync_ha_skills
+    if [ "$(conf 'ha_skills' 'true')" = "true" ]; then
+        sync_ha_skills
+    fi
     run_health_check
     start_web_terminal
 }

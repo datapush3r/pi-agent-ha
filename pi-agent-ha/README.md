@@ -1,6 +1,6 @@
 # Pi Agent Terminal for Home Assistant
 
-A Home Assistant add-on that runs the [pi coding agent](https://pi.dev/) in a browser-based terminal, right inside your dashboard. It ships the `ha` CLI for managing Home Assistant, git, and ripgrep — keeps your session alive across restarts with tmux, and opens in your `/config` directory. On every start it syncs the [home-assistant-best-practices agent skill](#home-assistant-best-practices-skill), and can optionally drive Home Assistant through an [MCP server](#home-assistant-control-ha-mcp--optional).
+A Home Assistant add-on that runs the [pi coding agent](https://pi.dev/) in a browser-based terminal, right inside your dashboard. It ships the `ha` CLI for managing Home Assistant, git, and ripgrep — keeps your session alive across restarts with tmux, and opens in your `/config` directory. On every start it syncs the [home-assistant-best-practices agent skill](#home-assistant-best-practices-skill) (disable with `ha_skills: false`), and can optionally drive Home Assistant through an [MCP server](#home-assistant-control-ha-mcp--optional).
 
 Inspired by [esjavadex/claude-code-ha](https://github.com/esjavadex/claude-code-ha) (MIT).
 
@@ -42,6 +42,7 @@ The container image is pre-built for each supported architecture and hosted on G
 | `ha_mcp_url` | *(empty)* | MCP server URL pi connects to for Home Assistant control. Set it to the [ha-mcp app's](https://github.com/homeassistant-ai/ha-mcp) MCP URL (from its Logs tab) to enable; empty = no HA tools. |
 | `ha_mcp_token` | *(empty)* | Optional Bearer token, only if the MCP endpoint requires one (e.g. HA's built-in `/api/mcp`). The ha-mcp app's secret-URL endpoint does not. |
 | `hide_ha_output` | `true` | Hide ha-mcp tool result bodies in the TUI (the call line stays visible). `false` = pi's default rendering with full output inline. |
+| `ha_skills` | `true` | Sync the home-assistant-best-practices skill from the homeassistant-ai/skills repo at each start. `false` skips the sync (the last synced copy stays in place). |
 | `pi_packages` | *(empty)* | Comma-separated pi package specs (`npm:@scope/pkg@1.2.0`, `git:github.com/user/repo@v1`, a URL, or a local path) installed at startup via pi's own installer. |
 
 ## Authentication
@@ -144,8 +145,7 @@ On every start the add-on syncs the
 agent skill from the [homeassistant-ai/skills](https://github.com/homeassistant-ai/skills)
 repo (MIT) into pi's global skills directory
 (`~/.pi/agent/skills/home-assistant-best-practices`). pi implements the
-[Agent Skills standard](https://agentskills.io) natively — no setup, no
-options.
+[Agent Skills standard](https://agentskills.io) natively — no setup.
 
 **What it is.** A decision workflow and a critical anti-pattern table in
 `SKILL.md`, backed by 14 reference docs the agent loads on demand. Core
@@ -177,6 +177,9 @@ version bump. A failed download (e.g. no internet at start) or an upstream
 repo layout change keeps the previously synced copy — the skill is only
 replaced after the new `SKILL.md` is verified — and pi runs normally
 either way. Check the add-on log for the `HA skill: synced …` line.
+
+**Disable.** Set the `ha_skills` option to `false` to skip the sync at start
+entirely — no download, no log line. The last synced copy stays in place.
 
 ## Adding pi packages (extensions, skills, themes) — optional
 
