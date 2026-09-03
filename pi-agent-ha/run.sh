@@ -216,14 +216,16 @@ WRAPPER_EOF
 install_ha_mcp() {
     local ext_src="/opt/extensions/ha-mcp.ts"
     local ext_dst="${HOME}/.pi/agent/extensions/ha-mcp.ts"
-    local ha_mcp_url ha_mcp_token
+    local ha_mcp_url ha_mcp_token hide_ha_output
 
     ha_mcp_url=$(conf 'ha_mcp_url' '')
     ha_mcp_token=$(conf 'ha_mcp_token' '')
+    hide_ha_output=$(conf 'hide_ha_output' 'true')
 
     # Export for the pi process (flows: run.sh -> ttyd -> tmux-pi -> tmux session).
     export HA_MCP_URL="$ha_mcp_url"
     export HA_MCP_TOKEN="$ha_mcp_token"
+    export HA_HIDE_OUTPUT="$hide_ha_output"
 
     if [ -f "$ext_src" ]; then
         mkdir -p "$(dirname "$ext_dst")"

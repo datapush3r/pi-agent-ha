@@ -95,11 +95,13 @@ only want simple entity control with zero extra apps installed.
 
 ## Behavior notes
 
-- **Output is hidden by default.** `ha_tools`/`ha_call` blocks render empty in
-  the terminal so HA calls don't clutter the session. Press `ctrl+o` (pi's
-  *expand tool output* keybinding) to show the full output, including which
-  MCP tool was called. This is display-only — the model always receives the
-  full result.
+- **The call line is shown, the output is hidden by default.** Each
+  `ha_tools`/`ha_call` block renders a one-line call (e.g. `HA call →
+  hass_turn_on`) and a zero-line result, so HA calls stay visible without
+  cluttering the session. Press `ctrl+o` (pi's *expand tool output*
+  keybinding) to show the full output. Set the `hide_ha_output` option to
+  `false` to restore pi's default rendering (full output inline). This is
+  display-only — the model always receives the full result.
 - **Readiness is reported, never blocking.** The extension warms its tool
   cache in the background at startup. A bad URL or token never prevents pi
   from starting — you'll see an `HA MCP: <error>` notification instead, and
@@ -117,6 +119,7 @@ only want simple entity control with zero extra apps installed.
 | --- | --- | --- |
 | `ha_mcp_url` | *(empty)* | MCP server URL. This is the on-switch: empty = HA control disabled. Set it to the ha-mcp app's MCP URL (from its Logs tab) or `http://homeassistant:8123/api/mcp`. |
 | `ha_mcp_token` | *(empty)* | Optional Bearer token, only if the endpoint requires one (e.g. HA's built-in `/api/mcp` with a long-lived access token). The ha-mcp app's secret-URL endpoint does not need a token. |
+| `hide_ha_output` | `true` | Hide ha-mcp tool result bodies in the TUI (the one-line call stays visible). `false` = pi's default rendering with full output inline. |
 
 ## Troubleshooting
 

@@ -1,7 +1,7 @@
 ---
 name: "Pi Agent Terminal"
 description: "Terminal interface for the pi coding agent (pi.dev). Web terminal via ttyd embedded in the HA dashboard, persistent tmux session, access to /config, Home Assistant control via the ha-mcp MCP server, and the home-assistant-ai best-practices skill."
-version: "1.6.0"
+version: "1.7.0"
 slug: "pi_agent_ha"
 init: false
 
@@ -49,6 +49,7 @@ options:
   local_max_tokens: 8192
   ha_mcp_url: ""
   ha_mcp_token: ""
+  hide_ha_output: true
 
 schema:
   auto_launch_pi: bool?
@@ -67,6 +68,7 @@ schema:
   local_max_tokens: int?
   ha_mcp_url: str?
   ha_mcp_token: password?
+  hide_ha_output: bool?
 
 # Volume mappings for file access
 map:

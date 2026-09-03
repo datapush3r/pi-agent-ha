@@ -20,14 +20,18 @@
  * server URL (from the ha-mcp app's Logs tab) to enable.
  *
  * Env:
- *   HA_MCP_URL    the MCP server URL (required to activate)
- *   HA_MCP_TOKEN  optional Bearer token (only for token-gated endpoints)
+ *   HA_MCP_URL      the MCP server URL (required to activate)
+ *   HA_MCP_TOKEN    optional Bearer token (only for token-gated endpoints)
+ *   HA_HIDE_OUTPUT  "true" (default) hides result bodies in the TUI (call
+ *                   lines stay visible); "false" uses pi's default rendering
  */
 import { Type } from "typebox";
 import { Text } from "@earendil-works/pi-tui";
 
 const MCP_URL = process.env.HA_MCP_URL || "";
 const MCP_TOKEN = process.env.HA_MCP_TOKEN || "";
+const HIDE_OUTPUT =
+	(process.env.HA_HIDE_OUTPUT ?? "true").toLowerCase() !== "false";
 const PROTOCOL_VERSION = "2025-06-18";
 const TIMEOUT_MS = 15000;
 
@@ -145,14 +149,37 @@ function contentToText(content: any): string {
 }
 
 /**
- * TUI display: ha-mcp tool blocks are hidden by default so their output takes
- * no terminal space. With renderShell:"self", a zero-line render collapses the
- * whole block (call + result). Pressing the "expand tool output" keybinding
- * (default ctrl+o) renders the full result. The model always receives the full
- * result — this only affects what the TUI shows.
+ * TUI display for ha-mcp tool calls. With the hide_ha_output option on
+ * (default) the result body renders to zero lines so it takes no terminal
+ * space, while the call line stays visible ("HA call → hass_turn_on").
+ * Pressing the "expand tool output" keybinding (default ctrl+o) renders the
+ * full result. With the option off, pi's default rendering shows everything.
+ * The model always receives the full result — this only affects the TUI.
  */
 function hiddenComponent(): any {
 	return new Text("", 0, 0);
+}
+
+function haCallLabel(o: any): string {
+	const t = (o && (o.tool || (o.details && o.details.tool))) || "";
+	return t ? `HA call → ${t}` : "HA call";
+}
+
+/**
+ * Render props for a ha-mcp tool: collapsed result (zero lines) with a
+ * visible call line, or {} to fall back to pi's default rendering.
+ */
+function renderProps(label: (o: any) => string): any {
+	if (!HIDE_OUTPUT) return {};
+	return {
+		renderShell: "self",
+		renderCall: (args: any, theme: any) =>
+			new Text(theme.fg("toolTitle", label(args || {})), 0, 0),
+		renderResult: (result: any, options: any, theme: any) =>
+			options && options.expanded
+				? expandedComponent(label(result || {}), result, theme)
+				: hiddenComponent(),
+	};
 }
 
 function expandedComponent(label: string, result: any, theme: any): any {
@@ -198,12 +225,7 @@ export default async function haMcpExtension(pi: any) {
 			"Use ha_tools to discover the Home Assistant tools before calling ha_call.",
 		],
 		parameters: listSchema,
-		renderShell: "self",
-		renderCall: () => hiddenComponent(),
-		renderResult: (result: any, options: any, theme: any) =>
-			options && options.expanded
-				? expandedComponent("ha_tools", result, theme)
-				: hiddenComponent(),
+		...renderProps(() => "HA tools"),
 		async execute(_toolCallId: string, params: any) {
 			try {
 				const tools = await listTools();
@@ -245,16 +267,7 @@ export default async function haMcpExtension(pi: any) {
 			"Use ha_call to invoke one Home Assistant tool; pass its name in 'tool' and its parameters in 'args'.",
 		],
 		parameters: callSchema,
-		renderShell: "self",
-		renderCall: () => hiddenComponent(),
-		renderResult: (result: any, options: any, theme: any) =>
-			options && options.expanded
-				? expandedComponent(
-						`ha_call: ${result && result.details && result.details.tool ? result.details.tool : ""}`,
-						result,
-						theme,
-					)
-				: hiddenComponent(),
+		...renderProps(haCallLabel),
 		async execute(_toolCallId: string, params: any) {
 			const name = params && params.tool;
 			if (!name || typeof name !== "string") {

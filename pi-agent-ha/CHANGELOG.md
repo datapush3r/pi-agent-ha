@@ -2,6 +2,17 @@
 
 All notable changes to the **Pi Agent Terminal** add-on. Newest first.
 
+## 1.7.0 — 2026-09-03
+
+- **ha-mcp TUI: calls visible, output hidden — now configurable.**
+  - `ha_tools`/`ha_call` blocks now show the one-line call (e.g.
+    `HA call → hass_turn_on`) so you can see pi driving Home Assistant; only
+    the result body renders to zero lines. `ctrl+o` still expands the full
+    output.
+  - New `hide_ha_output` option (default `true`): set `false` to restore pi's
+    default rendering (full call + output inline). Display-only — the model
+    always receives the full result.
+
 ## 1.6.0 — 2026-09-03
 
 - **Security hardening (from a security scan).**

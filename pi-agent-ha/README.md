@@ -41,6 +41,7 @@ The container image is pre-built for each supported architecture and hosted on G
 | `local_max_tokens` | `8192` | Max output tokens of the local model. |
 | `ha_mcp_url` | *(empty)* | MCP server URL pi connects to for Home Assistant control. Set it to the [ha-mcp app's](https://github.com/homeassistant-ai/ha-mcp) MCP URL (from its Logs tab) to enable; empty = no HA tools. |
 | `ha_mcp_token` | *(empty)* | Optional Bearer token, only if the MCP endpoint requires one (e.g. HA's built-in `/api/mcp`). The ha-mcp app's secret-URL endpoint does not. |
+| `hide_ha_output` | `true` | Hide ha-mcp tool result bodies in the TUI (the call line stays visible). `false` = pi's default rendering with full output inline. |
 
 ## Authentication
 
@@ -124,10 +125,12 @@ pi then lists the server's tools via `ha_tools` and drives Home Assistant via
 `ha_mcp_url` to `http://homeassistant:8123/api/mcp` and `ha_mcp_token` to an
 HA long-lived access token (simpler, entity-control-focused tool set).
 
-**Tool output is hidden by default** so HA calls don't clutter the terminal.
-Press `ctrl+o` (pi's *expand tool output* keybinding) to show the full output
-of the tool calls. This is display-only — the model always receives the full
-result.
+**By default the tool call line is shown** (`HA call → hass_turn_on`) **but the
+result output is hidden**, so HA calls stay visible without cluttering the
+terminal. Press `ctrl+o` (pi's *expand tool output* keybinding) to show the
+full output. Set the `hide_ha_output` option to `false` to restore pi's
+default rendering (full output inline). This is display-only — the model
+always receives the full result.
 
 **[Full ha-mcp guide →](https://github.com/datapush3r/pi-agent-ha/blob/master/pi-agent-ha/HA-MCP.md)** —
 backends in detail, tool reference, behavior notes, options, and
