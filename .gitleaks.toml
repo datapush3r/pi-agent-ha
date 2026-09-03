@@ -1,12 +1,13 @@
 # Documented gitleaks exception (same discipline as .trivyignore).
 #
-# pi-agent-ha/web/ttyd-index.html was the STOCK ttyd 1.7.7 page, vendored
+# pi-agent-ha/web/ttyd-index.html is the STOCK ttyd 1.7.7 page, vendored
 # byte-for-byte (verified identical to the page the running container's ttyd
-# binary serves) for the 1.9.0 theme_mode feature. It was REMOVED in 1.9.1,
-# but the full-history scan still sees it in commit 13a2314, where gitleaks'
+# binary serves) and color-neutralized in 1.9.2 (3 byte-precise patches:
+# xterm default bg/fg -> #000000/#ffffff, page frame -> #000). gitleaks'
 # generic-api-key rule false-positives on its minified JS (content hashes,
-# base64 favicon). Keep this allowlist until that commit is purged from
-# history; upstream github.com/tsl0922/ttyd is the source of record.
+# base64 favicon) — in history (commit 13a2314) and in the current file.
+# Keep this allowlist while the vendored page exists; upstream
+# github.com/tsl0922/ttyd is the source of record for the bytes.
 [allowlist]
 description = "vendored stock ttyd 1.7.7 page (byte-identical upstream asset, minified-JS false positives)"
-paths = ['''^pi-agent-ha/web/ttyd-index\\.html$''']
+paths = ['''^pi-agent-ha/web/ttyd-index\.html$''']

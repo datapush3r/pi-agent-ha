@@ -421,6 +421,20 @@ start_web_terminal() {
         --client-option reconnect=5
     )
 
+    # Panel colors: the vendored page is the stock ttyd 1.7.7 page with the
+    # xterm default theme neutralized (bg #2b2b2b -> #000000, fg #d2d2d2 ->
+    # #ffffff, page frame -> #000), so the only colors shown are the ones the
+    # app stream (bash/pi) sends plus pure black/white defaults. No HA theme
+    # is read; no option. Re-vendor web/ttyd-index.html (re-apply the 3
+    # patches) if the ttyd version changes.
+    local panel_index="/opt/web/ttyd-index.html"
+    if [ -r "${panel_index}" ] && grep -q 'background:"#000000"' "${panel_index}"; then
+        ttyd_flags+=(--index "${panel_index}")
+        bashio::log.info "Panel page: neutralized stock ttyd page (app colors rule)"
+    else
+        bashio::log.warning "vendored panel page missing or modified - serving ttyd built-in page"
+    fi
+
     # ttyd attaches every browser connection to the persistent tmux session.
     # If pi is running and you close the browser tab, it keeps running.
     # Reopening the tab re-attaches to the same session.

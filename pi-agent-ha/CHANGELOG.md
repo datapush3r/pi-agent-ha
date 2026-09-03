@@ -2,6 +2,19 @@
 
 All notable changes to the **Pi Agent Terminal** add-on. Newest first.
 
+## 1.9.2 — 2026-09-03
+
+- **Panel colors: app colors rule.** The panel now serves the stock ttyd page
+  with its built-in xterm theme neutralized: default background
+  `#2b2b2b` → `#000000`, default foreground `#d2d2d2` → `#ffffff`, page
+  frame → `#000`. The only colors you see are the ones the app stream
+  (bash/pi) sends via ANSI/OSC — truecolor and live OSC 10/11/12 sets always
+  rendered as-is — plus pure black/white where the app specifies nothing.
+  The stock palette no longer tints the boot splash, the shell, or the
+  area behind pi. The standard 16-color ANSI index mapping is unchanged
+  (that mapping is the definition of what an index means). No new option;
+  no Home Assistant theme is read.
+
 ## 1.9.1 — 2026-09-03
 
 - **Removed the `theme_mode` option (simplification).** The panel now always
