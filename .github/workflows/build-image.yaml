@@ -1,6 +1,8 @@
 # Builds the add-on container image for all supported architectures and
 # pushes it to GHCR. The add-on manifest references this image, so
 # installing/updating the add-on is a fast pull instead of a local build.
+# Security gates: gitleaks scans the repo history for secrets before the
+# build; Trivy scans the pushed image (fails on critical, fixed CVEs).
 name: Build & push image
 
 on:
@@ -14,10 +16,19 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 1
+
+      - name: Secret scan (gitleaks, full history)
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          fetch-depth: 0
 
       - name: Read add-on version
         id: version
@@ -40,3 +51,25 @@ jobs:
           tags: |
             ghcr.io/datapush3r/pi-agent-ha:${{ steps.version.outputs.version }}
             ghcr.io/datapush3r/pi-agent-ha:latest
+
+  # Scan the image just pushed. The image is already published by the time
+  # this runs, so a red scan is an alert to fix (usually a base-image bump),
+  # not a gate on the release itself.
+  scan-image:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Trivy image scan (critical + fixed only)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-name: ghcr.io/datapush3r/pi-agent-ha:${{ needs.build.outputs.version }}
+          format: table
+          exit-code: "1"
+          severity: CRITICAL
+          ignore-unfixed: true
