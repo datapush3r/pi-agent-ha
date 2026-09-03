@@ -24,6 +24,7 @@
  *   HA_MCP_TOKEN  optional Bearer token (only for token-gated endpoints)
  */
 import { Type } from "typebox";
+import { Text } from "@earendil-works/pi-tui";
 
 const MCP_URL = process.env.HA_MCP_URL || "";
 const MCP_TOKEN = process.env.HA_MCP_TOKEN || "";
@@ -143,6 +144,28 @@ function contentToText(content: any): string {
 	return JSON.stringify(content);
 }
 
+/**
+ * TUI display: ha-mcp tool blocks are hidden by default so their output takes
+ * no terminal space. With renderShell:"self", a zero-line render collapses the
+ * whole block (call + result). Pressing the "expand tool output" keybinding
+ * (default ctrl+o) renders the full result. The model always receives the full
+ * result — this only affects what the TUI shows.
+ */
+function hiddenComponent(): any {
+	return new Text("", 0, 0);
+}
+
+function expandedComponent(label: string, result: any, theme: any): any {
+	const text = contentToText(
+		result && result.content !== undefined
+			? result.content
+			: result && result.details,
+	);
+	const header = theme.fg("toolTitle", theme.bold(label));
+	const body = theme.fg("toolOutput", text || "(no output)");
+	return new Text(`${header}\n${body}`, 0, 0);
+}
+
 export default async function haMcpExtension(pi: any) {
 	// Graceful no-op when disabled: no MCP URL => no HA tools, pi runs normally.
 	// Set the add-on's ha_mcp_url option to the MCP server URL to enable.
@@ -175,6 +198,12 @@ export default async function haMcpExtension(pi: any) {
 			"Use ha_tools to discover the Home Assistant tools before calling ha_call.",
 		],
 		parameters: listSchema,
+		renderShell: "self",
+		renderCall: () => hiddenComponent(),
+		renderResult: (result: any, options: any, theme: any) =>
+			options && options.expanded
+				? expandedComponent("ha_tools", result, theme)
+				: hiddenComponent(),
 		async execute(_toolCallId: string, params: any) {
 			try {
 				const tools = await listTools();
@@ -216,6 +245,16 @@ export default async function haMcpExtension(pi: any) {
 			"Use ha_call to invoke one Home Assistant tool; pass its name in 'tool' and its parameters in 'args'.",
 		],
 		parameters: callSchema,
+		renderShell: "self",
+		renderCall: () => hiddenComponent(),
+		renderResult: (result: any, options: any, theme: any) =>
+			options && options.expanded
+				? expandedComponent(
+						`ha_call: ${result && result.details && result.details.tool ? result.details.tool : ""}`,
+						result,
+						theme,
+					)
+				: hiddenComponent(),
 		async execute(_toolCallId: string, params: any) {
 			const name = params && params.tool;
 			if (!name || typeof name !== "string") {

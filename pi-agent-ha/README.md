@@ -120,9 +120,19 @@ pi then lists the ha-mcp tools via `ha_tools` and drives Home Assistant via `ha_
 Leave `ha_mcp_url` empty to disable HA control — the extension is a graceful no-op, so
 pi still runs normally.
 
+**Tool output is hidden by default** so HA calls don't clutter the terminal. Press
+`ctrl+o` (pi's *expand tool output* keybinding) to show the full output of the tool
+calls. This is display-only — the model always receives the full result.
+
 > The built-in HA MCP server also works: point `ha_mcp_url` at
 > `http://homeassistant:8123/api/mcp` and set `ha_mcp_token` to an HA long-lived
 > access token. The ha-mcp app is the more capable, recommended backend.
+
+## Home Assistant best-practices skill
+
+The add-on syncs the [`home-assistant-best-practices`](https://github.com/homeassistant-ai/skills) agent skill from the [homeassistant-ai/skills](https://github.com/homeassistant-ai/skills) repo into pi's global skills directory at every start. pi implements the [Agent Skills standard](https://agentskills.io) natively — no setup, no options. The skill's short description is always in pi's context, and the full guidance (native triggers/conditions over Jinja templates, helper selection, automation modes, dashboards, safe refactoring) loads on demand whenever pi works on your automations, scripts, scenes, or dashboards.
+
+The skill is fetched from the upstream `main` branch on each start, so improvements flow without an image rebuild or version bump. If the download fails (e.g. no internet at start), the previously synced copy is kept and pi runs normally.
 
 ## Architecture support
 

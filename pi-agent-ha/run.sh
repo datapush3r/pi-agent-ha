@@ -240,6 +240,37 @@ install_ha_mcp() {
     fi
 }
 
+# Sync the homeassistant-ai agent skill (home-assistant-best-practices) into pi's
+# global skills dir. pi implements the Agent Skills standard (agentskills.io)
+# and discovers any directory containing SKILL.md, so the skill folder is
+# dropped in as-is. Fetched from upstream main on every start so anti-pattern
+# fixes flow without an image rebuild; a failed download or a repo layout
+# change keeps the previously synced copy (the old copy is only removed after
+# the new SKILL.md is verified).
+sync_ha_skills() {
+    local skill_name="home-assistant-best-practices"
+    local skill_repo="https://github.com/homeassistant-ai/skills"
+    local skill_dst="${HOME}/.pi/agent/skills/${skill_name}"
+    local tmp skill_src
+
+    tmp=$(mktemp -d)
+    if curl -fsSL "${skill_repo}/archive/refs/heads/main.tar.gz" -o "${tmp}/ha-skills.tar.gz" &&
+        tar -xzf "${tmp}/ha-skills.tar.gz" -C "$tmp"; then
+        skill_src=$(find "$tmp" -type d -name "$skill_name" -print -quit 2>/dev/null || true)
+        if [ -n "$skill_src" ] && [ -f "${skill_src}/SKILL.md" ]; then
+            rm -rf "$skill_dst"
+            mkdir -p "$(dirname "$skill_dst")"
+            cp -r "$skill_src" "$skill_dst"
+            bashio::log.info "HA skill: synced ${skill_name} (${skill_repo}) -> ${skill_dst}"
+        else
+            bashio::log.warning "HA skill: ${skill_name} not found in the skills repo (layout changed?) — keeping previous copy"
+        fi
+    else
+        bashio::log.warning "HA skill: download from ${skill_repo} failed — keeping previous copy"
+    fi
+    rm -rf "$tmp"
+}
+
 # Determine the pi launch command based on configuration
 get_pi_launch_command() {
     local auto_launch_pi
@@ -331,6 +362,7 @@ main() {
     sync_models_json
     setup_tmux
     install_ha_mcp
+    sync_ha_skills
     run_health_check
     start_web_terminal
 }

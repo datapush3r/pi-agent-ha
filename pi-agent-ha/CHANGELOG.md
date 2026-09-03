@@ -2,6 +2,12 @@
 
 All notable changes to the **Pi Agent Terminal** add-on. Newest first.
 
+## 1.5.0 — 2026-09-03
+
+- **Home Assistant best-practices skill.** On every start the add-on syncs the [`home-assistant-best-practices`](https://github.com/homeassistant-ai/skills) agent skill from the [homeassistant-ai/skills](https://github.com/homeassistant-ai/skills) repo into pi's global skills dir (`/data/home/.pi/agent/skills/`). pi implements the [Agent Skills standard](https://agentskills.io) natively, so the skill works with no setup and no new options: its short description is always in pi's context, and the full guidance (native triggers/conditions over Jinja, helper selection, automation modes, dashboards, safe refactoring) loads on demand whenever pi touches your automations, scripts, scenes, or dashboards.
+- The skill is fetched from upstream `main` at startup, so fixes flow through without an image rebuild or version bump. A failed download or a repo layout change keeps the previously synced copy — the old copy is only replaced after the new `SKILL.md` is verified.
+- **`ha_tools` / `ha_call` output is hidden by default.** HA tool results no longer take terminal space — the TUI tool blocks render empty (self-shell rendering). Press `ctrl+o` (pi's *expand tool output* keybinding) to show the full output of the tool calls. This is display-only: the model always receives the full result.
+
 ## 1.4.0 — 2026-09-02
 
 - **Pivoted the Home Assistant backend to the [homeassistant-ai ha-mcp server](https://github.com/homeassistant-ai/ha-mcp).** The `ha-mcp.ts` extension is now a general MCP *Streamable HTTP* client: point `ha_mcp_url` at any MCP server and pi gets its tools (`ha_tools` / `ha_call`). The intended backend is the official **Home Assistant MCP Server** app — beyond controlling entities it can build/edit automations, dashboards, and scripts; debug from traces; read history and logs; and manage helpers, areas, zones, labels, HACS, backups, and the device/entity registry.
