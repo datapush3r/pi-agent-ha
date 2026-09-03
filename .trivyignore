@@ -1,0 +1,12 @@
+# Trivy exceptions. Every line here is a deliberate, time-boxed deviation
+# from the "fail on critical, fixed CVEs" CI policy — each must name the
+# component, why it's ignored, and when to remove it. Remove a line the
+# moment the fix is available; CI re-fails if the CVE still matches.
+#
+# CVE-2026-56854 — golang.org/x/crypto bundled in the `ha` CLI (Go binary,
+# home-assistant/cli). Fixed upstream in x/crypto, but 5.4.0 (released
+# 2026-08-28) is the latest ha CLI release as of 2026-09-03, so no fixed
+# binary exists yet. ACTION: on the next home-assistant/cli release, bump
+# HA_VERSION + the per-arch SHA-256 pins in pi-agent-ha/Dockerfile and
+# delete this line.
+CVE-2026-56854

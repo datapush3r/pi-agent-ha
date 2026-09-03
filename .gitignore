@@ -9,5 +9,6 @@
 !LICENSE
 !.github/
 !.github/**
+!.trivyignore
 !pi-agent-ha/
 !pi-agent-ha/**
