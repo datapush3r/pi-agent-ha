@@ -430,8 +430,8 @@ start_web_terminal() {
     # no option. Re-vendor web/ttyd-index.html (re-apply both patches) if the
     # ttyd version changes.
     local panel_index="/opt/web/ttyd-index.html"
-    if [ -r "${panel_index}" ] && ! grep -q '#2b2b2b' "${panel_index}" \
-        && grep -q 'html,body,#terminal-container{background:#000}' "${panel_index}"; then
+    if [ -r "${panel_index}" ] && ! grep -q '#2b2b2b' "${panel_index}" &&
+        grep -q 'html,body,#terminal-container{background:#000}' "${panel_index}"; then
         ttyd_flags+=(--index "${panel_index}")
         bashio::log.info "Panel page: stock ttyd page with xterm.js built-in colors"
     else
