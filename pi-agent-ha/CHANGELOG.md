@@ -8,8 +8,12 @@ All notable changes to the **Pi Agent Terminal** add-on. Newest first.
   themes, prompt templates) at startup. Comma-separated specs —
   `npm:@scope/pkg@1.2.0`, `git:github.com/user/repo@v1`, a plain URL, or a
   local path — are handed to pi's own `pi install` and land in the user
-  settings on the persistent `/data` volume. Invalid specs are skipped with a
-  log warning and a failed install never blocks startup.
+  settings on the persistent `/data` volume.
+- **Unlisting removes:** dropping a spec from the list runs `pi remove` for it
+  on the next startup (the last installed set is tracked in a small state
+  file on `/data`), so the option is the single source of truth.
+- Invalid specs are skipped with a log warning; a failed install or remove
+  never blocks startup.
 
 ## 1.7.0 — 2026-09-03
 

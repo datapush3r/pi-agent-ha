@@ -196,8 +196,9 @@ pi_packages: "npm:@foo/bar@1.2.0, git:github.com/user/repo@v1"
   packages you'd run locally.
 - Invalid specs are skipped with a log warning; a failed install never
   blocks startup (pi always starts).
-- Remove a package by dropping it from `pi_packages` and running
-  `pi remove <spec>` in the terminal (or edit the settings file directly).
+- Remove a package by dropping it from `pi_packages` and restarting — the
+  add-on runs `pi remove` for anything no longer listed (the last installed
+  set is tracked on `/data`), so the option is the single source of truth.
 
 ## Architecture support
 

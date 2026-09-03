@@ -244,30 +244,64 @@ install_ha_mcp() {
 
 # Install user-specified pi packages (npm: / git: / URL / local-path specs)
 # via pi's own installer into the user settings on the persistent /data
-# volume. Non-fatal per package: an invalid spec is skipped with a warning
-# and a failed install never blocks startup. Specs are validated against a
-# strict charset and passed as one quoted arg (no eval) — and installing a
-# package means trusting its code (it runs with pi's privileges).
+# volume, and `pi remove` anything unlisted since the previous startup
+# (the last installed set is tracked in a small state file). Non-fatal per
+# package: an invalid spec is skipped with a warning and a failed install or
+# remove never blocks startup. Specs are validated against a strict charset
+# and passed as one quoted arg (no eval) — and installing a package means
+# trusting its code (it runs with pi's privileges).
 install_pi_packages() {
-    local pi_packages spec
-    local specs
+    local pi_packages spec state keep s
+    local specs previous=() valid=()
 
+    state="${HOME}/.pi/agent/.pi_packages"
+    mkdir -p "$(dirname "$state")"
     pi_packages=$(conf 'pi_packages' '')
-    [ -z "$pi_packages" ] && return 0
 
-    read -ra specs <<< "${pi_packages//,/ }"
-    for spec in "${specs[@]}"; do
-        [ -z "$spec" ] && continue
-        if [[ ! "$spec" =~ ^[A-Za-z0-9@:/._~+-]+$ ]]; then
-            bashio::log.warning "pi_packages: skipping invalid spec '${spec}'"
-            continue
+    if [ -f "$state" ]; then
+        read -ra previous < "$state"
+    fi
+
+    if [ -n "$pi_packages" ]; then
+        read -ra specs <<< "${pi_packages//,/ }"
+        for spec in "${specs[@]}"; do
+            [ -z "$spec" ] && continue
+            if [[ ! "$spec" =~ ^[A-Za-z0-9@:/._~+-]+$ ]]; then
+                bashio::log.warning "pi_packages: skipping invalid spec '${spec}'"
+                continue
+            fi
+            valid+=("$spec")
+        done
+    fi
+
+    # Unlisted packages: installed last startup, no longer in the option.
+    for spec in "${previous[@]}"; do
+        keep=0
+        for s in "${valid[@]}"; do
+            [ "$s" = "$spec" ] && keep=1 && break
+        done
+        if [ "$keep" = 0 ]; then
+            if pi remove "$spec" >/dev/null 2>&1; then
+                bashio::log.info "pi package removed: ${spec}"
+            else
+                bashio::log.warning "pi package failed to remove: ${spec}"
+            fi
         fi
+    done
+
+    for spec in "${valid[@]}"; do
         if pi install "$spec"; then
             bashio::log.info "pi package installed: ${spec}"
         else
             bashio::log.warning "pi package failed to install: ${spec}"
         fi
     done
+
+    if [ "${#valid[@]}" -gt 0 ]; then
+        printf '%s\n' "${valid[@]}" > "$state"
+    else
+        : > "$state"
+    fi
 }
 
 # Sync the homeassistant-ai agent skill (home-assistant-best-practices) into pi's
