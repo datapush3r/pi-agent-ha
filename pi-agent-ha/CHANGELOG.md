@@ -2,6 +2,20 @@
 
 All notable changes to the **Pi Agent Terminal** add-on. Newest first.
 
+## 1.9.3 — 2026-09-03
+
+- **Panel colors: fully delegated to xterm.js.** After checking the
+  xterm.js source, its built-in defaults are white on black
+  (`foreground: #ffffff`, `background: #000000`, white cursor, selection =
+  white @ 30%) plus its own built-in 16-color palette — and a missing/partial
+  theme falls back to those built-ins key by key. The vendored page now
+  **strips the page-level theme object from the xterm options entirely**
+  (instead of 1.9.2's value substitutions), so xterm.js applies its own
+  built-in colors and the page contributes none. Net effect vs 1.9.2: the
+  cursor is white (was gray) and indexed ANSI colors (e.g. `\e[34m`) use
+  xterm.js's palette (slightly different Tango values) instead of ttyd's.
+  Colors sent by the app stream (truecolor, OSC 10/11/12) are unaffected.
+
 ## 1.9.2 — 2026-09-03
 
 - **Panel colors: app colors rule.** The panel now serves the stock ttyd page

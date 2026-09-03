@@ -422,15 +422,18 @@ start_web_terminal() {
     )
 
     # Panel colors: the vendored page is the stock ttyd 1.7.7 page with the
-    # xterm default theme neutralized (bg #2b2b2b -> #000000, fg #d2d2d2 ->
-    # #ffffff, page frame -> #000), so the only colors shown are the ones the
-    # app stream (bash/pi) sends plus pure black/white defaults. No HA theme
-    # is read; no option. Re-vendor web/ttyd-index.html (re-apply the 3
-    # patches) if the ttyd version changes.
+    # page-level xterm theme object stripped from the options bundle and the
+    # page frame set to #000. With no theme in the options, xterm.js applies
+    # its own built-in defaults (white on black, its own 16-color palette) -
+    # so every color shown is either sent by the app stream (bash/pi) or is
+    # an xterm.js built-in; the page contributes none. No HA theme is read;
+    # no option. Re-vendor web/ttyd-index.html (re-apply both patches) if the
+    # ttyd version changes.
     local panel_index="/opt/web/ttyd-index.html"
-    if [ -r "${panel_index}" ] && grep -q 'background:"#000000"' "${panel_index}"; then
+    if [ -r "${panel_index}" ] && ! grep -q '#2b2b2b' "${panel_index}" \
+        && grep -q 'html,body,#terminal-container{background:#000}' "${panel_index}"; then
         ttyd_flags+=(--index "${panel_index}")
-        bashio::log.info "Panel page: neutralized stock ttyd page (app colors rule)"
+        bashio::log.info "Panel page: stock ttyd page with xterm.js built-in colors"
     else
         bashio::log.warning "vendored panel page missing or modified - serving ttyd built-in page"
     fi
